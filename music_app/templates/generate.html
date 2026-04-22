@@ -1,0 +1,281 @@
+{% extends "base.html" %}
+{% block title %}Generate{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto px-6 py-10">
+
+  <!-- ── Header ── -->
+  <div class="mb-8">
+    {% if prefill %}
+    <div class="flex items-center gap-2 mb-3 px-4 py-2.5 rounded-xl text-sm"
+         style="background:#1e1b4b;border:1px solid #4338ca;color:#a5b4fc;">
+      🔄 Editing a previous song's settings — adjust and generate a new version.
+    </div>
+    {% endif %}
+    <h1 class="text-3xl font-bold text-white">Generate a Song</h1>
+    <p class="text-slate-500 text-sm mt-1">Describe your track and our AI will create it.</p>
+  </div>
+
+  <!-- ── Form ── -->
+  <form id="gen-form" class="flex flex-col gap-5">
+
+    <!-- Prompt (required) -->
+    <div>
+      <label class="block text-sm font-medium text-slate-300 mb-2">
+        Prompt <span class="text-red-400">*</span>
+      </label>
+      <textarea name="prompt" id="prompt" rows="4" required
+                placeholder="e.g. An upbeat summer pop song about road trips and freedom, with catchy guitar riffs and a sing-along chorus"
+                class="input-field resize-none">{{ prefill.prompt|default:"" }}</textarea>
+      <p class="text-slate-600 text-xs mt-1.5">Be descriptive — mood, instruments, energy, theme all help.</p>
+    </div>
+
+    <!-- Title -->
+    <div>
+      <label class="block text-sm font-medium text-slate-300 mb-2">Title</label>
+      <input name="title" id="title" type="text"
+             placeholder="e.g. Summer Road Trip"
+             value="{{ prefill.title|default:'' }}"
+             class="input-field">
+    </div>
+
+    <!-- Genre + Mood (2-col) -->
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm font-medium text-slate-300 mb-2">Genre</label>
+        <select name="genre" id="genre" class="input-field">
+          <option value=""{% if not prefill.genre %} selected{% endif %}>— Any —</option>
+          {% for val, label in genres %}
+          <option value="{{ val }}"{% if prefill.genre == val %} selected{% endif %}>{{ label }}</option>
+          {% empty %}
+          <option value="POP"  {% if prefill.genre == "POP"       %} selected{% endif %}>Pop</option>
+          <option value="JAZZ" {% if prefill.genre == "JAZZ"      %} selected{% endif %}>Jazz</option>
+          <option value="ROCK" {% if prefill.genre == "ROCK"      %} selected{% endif %}>Rock</option>
+          <option value="HIPHOP" {% if prefill.genre == "HIPHOP"  %} selected{% endif %}>Hip-Hop</option>
+          <option value="CLASSICAL" {% if prefill.genre == "CLASSICAL" %} selected{% endif %}>Classical</option>
+          <option value="ROMANCE" {% if prefill.genre == "ROMANCE" %} selected{% endif %}>Romance</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-slate-300 mb-2">Mood</label>
+        <input name="mood" id="mood" type="text"
+               placeholder="e.g. energetic, melancholic"
+               value="{{ prefill.mood|default:'' }}"
+               class="input-field">
+      </div>
+    </div>
+
+    <!-- Vocal style -->
+    <div>
+      <label class="block text-sm font-medium text-slate-300 mb-2">Vocal Style</label>
+      <input name="vocal_style" id="vocal_style" type="text"
+             placeholder="e.g. female alto, male rap, choir"
+             value="{{ prefill.vocal_style|default:'' }}"
+             class="input-field">
+    </div>
+
+    <!-- Instrumental toggle -->
+    <div class="flex items-center gap-3 p-4 rounded-xl" style="background:#1a1a2e;border:1px solid #2a2a3e;">
+      <label class="relative inline-flex items-center cursor-pointer">
+        <input type="checkbox" name="instrumental" id="instrumental" class="sr-only peer">
+        <div class="w-10 h-6 rounded-full peer-focus:outline-none transition-all
+                    bg-[#2a2a3e] peer-checked:bg-[#6c63ff]
+                    after:content-[''] after:absolute after:top-[2px] after:left-[2px]
+                    after:bg-white after:rounded-full after:h-5 after:w-5
+                    after:transition-all peer-checked:after:translate-x-4"></div>
+      </label>
+      <div>
+        <p class="text-sm font-medium text-slate-200">Instrumental only</p>
+        <p class="text-xs text-slate-500">Generate music without vocals</p>
+      </div>
+    </div>
+
+    <!-- Lyrics (optional, hidden when instrumental) -->
+    <div id="lyrics-wrap">
+      <label class="block text-sm font-medium text-slate-300 mb-2">
+        Lyrics <span class="text-slate-600">(optional)</span>
+      </label>
+      <textarea name="lyrics" id="lyrics" rows="5"
+                placeholder="Paste custom lyrics here — leave blank to let the AI write them"
+                class="input-field resize-none">{{ prefill.lyrics|default:"" }}</textarea>
+    </div>
+
+    <!-- Submit -->
+    <button type="submit" id="gen-btn" class="btn-primary px-6 py-3.5 text-base">
+      ✨ Generate Song
+    </button>
+
+  </form>
+
+  <!-- ── Progress ── -->
+  <div id="progress-section" class="hidden mt-8 card p-6 rounded-2xl">
+    <div class="flex items-center gap-3 mb-4">
+      <div class="spinner"></div>
+      <p class="text-white font-semibold" id="progress-text">Sending to AI…</p>
+    </div>
+    <div class="h-1.5 rounded-full overflow-hidden" style="background:#2a2a3e;">
+      <div class="h-full rounded-full bg-[#6c63ff] progress-indeterminate" style="width:40%;"></div>
+    </div>
+    <p class="text-slate-500 text-xs mt-3" id="progress-sub">This usually takes 20–60 seconds.</p>
+  </div>
+
+  <!-- ── Result ── -->
+  <div id="result-section" class="hidden mt-8 card p-6 rounded-2xl">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-lg font-bold text-white" id="result-title">Song Ready!</h2>
+      <span id="result-badge"></span>
+    </div>
+    <div id="result-player" class="mb-4"></div>
+    <p class="text-slate-500 text-xs mb-5" id="result-meta"></p>
+    <div class="flex gap-3">
+      <a id="result-detail-link" href="#" class="btn-primary px-4 py-2.5 text-sm">
+        View Details
+      </a>
+      <button onclick="resetForm()" class="btn-secondary px-4 py-2.5 text-sm">
+        Generate Another
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Error ── -->
+  <div id="error-section" class="hidden mt-8 card p-5 rounded-2xl" style="border-color:#ef4444;">
+    <p class="text-red-400 font-medium text-sm" id="error-text">Generation failed.</p>
+    <button onclick="resetForm()" class="mt-3 btn-secondary px-4 py-2 text-sm">Try again</button>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const USER_ID = '{{ songs_user.userId }}';
+
+document.getElementById('instrumental').addEventListener('change', function () {
+  document.getElementById('lyrics-wrap').style.display = this.checked ? 'none' : 'block';
+});
+
+document.getElementById('gen-form').addEventListener('submit', async function (e) {
+  e.preventDefault();
+
+  const prompt = document.getElementById('prompt').value.trim();
+  if (!prompt) { showToast('Prompt is required.', 'error'); return; }
+
+  const payload = {
+    user_id:      USER_ID,
+    prompt:       prompt,
+    title:        document.getElementById('title').value.trim(),
+    genre:        document.getElementById('genre').value,
+    mood:         document.getElementById('mood').value.trim(),
+    vocal_style:  document.getElementById('vocal_style').value.trim(),
+    lyrics:       document.getElementById('lyrics').value.trim(),
+    instrumental: document.getElementById('instrumental').checked,
+  };
+
+  showProgress('Sending to AI…');
+
+  try {
+    const res = await fetch('/songs/generate/', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(payload),
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      showError(data.error || 'Generation failed.');
+      return;
+    }
+
+    if (data.status === 'SUCCESS') {
+      showResult(data);
+    } else if (data.status === 'FAILED') {
+      showError(data.error || 'AI returned a failure status.');
+    } else {
+      // PENDING — start polling
+      document.getElementById('progress-text').textContent = 'AI is composing your track…';
+      document.getElementById('progress-sub').textContent  = `Song ID: ${data.song_id}`;
+      pollResult(data.song_id);
+    }
+  } catch (err) {
+    showError('Network error: ' + err.message);
+  }
+});
+
+async function pollResult(songId) {
+  await sleep(5000);
+  try {
+    const res  = await fetch(`/songs/${songId}/status/`);
+    const data = await res.json();
+
+    if (data.status === 'SUCCESS') {
+      showResult(data);
+    } else if (data.status === 'FAILED') {
+      showError('AI failed to generate the track.');
+    } else {
+      const labels = [
+        'Still composing…',
+        'Adding instruments…',
+        'Mixing the track…',
+        'Almost there…',
+        'Finalising audio…',
+      ];
+      document.getElementById('progress-text').textContent =
+        labels[Math.floor(Math.random() * labels.length)];
+      pollResult(songId);
+    }
+  } catch {
+    await sleep(5000);
+    pollResult(songId);
+  }
+}
+
+function showProgress(msg) {
+  document.getElementById('gen-form').style.opacity       = '0.4';
+  document.getElementById('gen-form').style.pointerEvents = 'none';
+  document.getElementById('gen-btn').disabled = true;
+  document.getElementById('progress-section').classList.remove('hidden');
+  document.getElementById('result-section').classList.add('hidden');
+  document.getElementById('error-section').classList.add('hidden');
+  document.getElementById('progress-text').textContent = msg;
+}
+
+function showResult(data) {
+  document.getElementById('progress-section').classList.add('hidden');
+  document.getElementById('error-section').classList.add('hidden');
+  const sec = document.getElementById('result-section');
+  sec.classList.remove('hidden');
+
+  document.getElementById('result-title').textContent = data.title || 'Song Ready!';
+  document.getElementById('result-badge').innerHTML   = statusBadgeHtml('SUCCESS');
+  document.getElementById('result-detail-link').href  = `/song/${data.song_id}/`;
+  document.getElementById('result-meta').textContent  = 'Saved to your library.';
+
+  if (data.audio_url) {
+    document.getElementById('result-player').innerHTML =
+      `<audio controls autoplay class="w-full">
+         <source src="${data.audio_url}" type="audio/mpeg">
+       </audio>`;
+  }
+  showToast('Song generated!', 'success');
+}
+
+function showError(msg) {
+  document.getElementById('progress-section').classList.add('hidden');
+  document.getElementById('error-section').classList.remove('hidden');
+  document.getElementById('error-text').textContent = msg;
+  showToast(msg, 'error');
+}
+
+function resetForm() {
+  document.getElementById('gen-form').style.opacity       = '1';
+  document.getElementById('gen-form').style.pointerEvents = 'auto';
+  document.getElementById('gen-btn').disabled = false;
+  document.getElementById('progress-section').classList.add('hidden');
+  document.getElementById('result-section').classList.add('hidden');
+  document.getElementById('error-section').classList.add('hidden');
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+</script>
+{% endblock %}

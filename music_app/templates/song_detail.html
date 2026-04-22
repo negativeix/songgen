@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+{% block title %}{{ song.title }}{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-6 py-10">
+
+  <!-- ── Back link ── -->
+  <a href="/library/" class="inline-flex items-center gap-2 text-slate-500 hover:text-white text-sm mb-6 transition-colors">
+    ← Back to Library
+  </a>
+
+  <!-- ── Song header ── -->
+  <div class="card p-6 rounded-2xl mb-5">
+    <div class="flex items-start justify-between gap-4 mb-5">
+      <div class="min-w-0">
+        <div class="flex items-center gap-2 flex-wrap mb-2">
+          {% if song.genre %}
+          <span class="badge genre-{{ song.genre }}">{{ song.genre }}</span>
+          {% endif %}
+          {% if song.status == 'SUCCESS' %}
+            <span class="badge badge-success">✓ Ready</span>
+          {% elif song.status == 'FAILED' %}
+            <span class="badge badge-failed">✗ Failed</span>
+          {% else %}
+            <span class="badge badge-pending pulse-dot" id="status-badge">⏳ Generating</span>
+          {% endif %}
+          {% if song.visibility == 'PUBLIC' %}
+          <span class="badge" style="background:#1e3a2a;color:#6ee7b7;border:1px solid #22c55e;">🌐 Public</span>
+          {% endif %}
+        </div>
+        <h1 class="text-2xl font-bold text-white truncate" id="song-title">{{ song.title }}</h1>
+        {% if song.artist %}
+        <p class="text-slate-400 text-sm mt-1">{{ song.artist }}</p>
+        {% endif %}
+      </div>
+
+      <!-- Cover art swatch -->
+      <div class="w-20 h-20 flex-shrink-0 rounded-xl flex items-center justify-center text-3xl"
+           style="background: linear-gradient(135deg,
+             {% if song.genre == 'POP' %}#1e1b4b,#4338ca
+             {% elif song.genre == 'JAZZ' %}#022c22,#059669
+             {% elif song.genre == 'ROCK' %}#450a0a,#dc2626
+             {% elif song.genre == 'HIPHOP' %}#422006,#d97706
+             {% elif song.genre == 'CLASSICAL' %}#0c4a6e,#0284c7
+             {% elif song.genre == 'ROMANCE' %}#4a044e,#a21caf
+             {% else %}#1a1a2e,#2a2a3e{% endif %});">
+        {% if song.genre == 'POP' %}🎤{% elif song.genre == 'JAZZ' %}🎷{% elif song.genre == 'ROCK' %}🎸
+        {% elif song.genre == 'HIPHOP' %}🎧{% elif song.genre == 'CLASSICAL' %}🎻{% elif song.genre == 'ROMANCE' %}🎶
+        {% else %}🎵{% endif %}
+      </div>
+    </div>
+
+    <!-- Audio player -->
+    {% if song.audio_url %}
+    <div id="audio-wrap" class="mb-5">
+      <audio controls class="w-full">
+        <source src="{{ song.audio_url }}" type="audio/mpeg">
+        Your browser doesn't support audio playback.
+      </audio>
+    </div>
+    {% elif song.status != 'FAILED' %}
+    <div id="audio-wrap" class="mb-5 p-4 rounded-xl flex items-center gap-3"
+         style="background:#0f0f0f;border:1px solid #2a2a3e;">
+      <div class="spinner"></div>
+      <p class="text-slate-400 text-sm" id="status-text">Generating audio… check back shortly.</p>
+    </div>
+    {% endif %}
+
+    <!-- Meta row -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
+      {% if song.mood %}
+      <div class="p-3 rounded-xl" style="background:#0f0f0f;border:1px solid #2a2a3e;">
+        <p class="text-slate-600 text-xs mb-0.5">Mood</p>
+        <p class="text-slate-200 font-medium">{{ song.mood }}</p>
+      </div>
+      {% endif %}
+      {% if song.vocal_style %}
+      <div class="p-3 rounded-xl" style="background:#0f0f0f;border:1px solid #2a2a3e;">
+        <p class="text-slate-600 text-xs mb-0.5">Vocals</p>
+        <p class="text-slate-200 font-medium">{{ song.vocal_style }}</p>
+      </div>
+      {% endif %}
+      {% if song.duration %}
+      <div class="p-3 rounded-xl" style="background:#0f0f0f;border:1px solid #2a2a3e;">
+        <p class="text-slate-600 text-xs mb-0.5">Duration</p>
+        <p class="text-slate-200 font-medium">{{ song.duration }}s</p>
+      </div>
+      {% endif %}
+      {% if song.created_at %}
+      <div class="p-3 rounded-xl" style="background:#0f0f0f;border:1px solid #2a2a3e;">
+        <p class="text-slate-600 text-xs mb-0.5">Created</p>
+        <p class="text-slate-200 font-medium">{{ song.created_at|date:"M j, Y" }}</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- ── Prompt ── -->
+  {% if song.prompt %}
+  <div class="card p-5 rounded-2xl mb-5">
+    <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-2">Prompt</h3>
+    <p class="text-slate-300 text-sm leading-relaxed">{{ song.prompt }}</p>
+  </div>
+  {% endif %}
+
+  <!-- ── Lyrics ── -->
+  {% if song.lyrics %}
+  <div class="card p-5 rounded-2xl mb-5">
+    <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-2">Lyrics</h3>
+    <pre class="text-slate-300 text-sm leading-loose whitespace-pre-wrap font-sans">{{ song.lyrics }}</pre>
+  </div>
+  {% endif %}
+
+  <!-- ── Actions ── -->
+  <div class="flex flex-wrap gap-3">
+
+    <!-- Share / Unshare -->
+    <button id="share-btn" onclick="toggleVisibility()"
+            class="btn-secondary px-4 py-2.5 text-sm flex items-center gap-2">
+      {% if song.visibility == 'PUBLIC' %}🔒 Make Private{% else %}🌐 Share Publicly{% endif %}
+    </button>
+
+    <!-- Copy public link (shown when public) -->
+    {% if song.visibility == 'PUBLIC' and song.public_token %}
+    <div id="public-link-wrap" class="flex items-center gap-2 card px-3 py-2 rounded-xl">
+      <input type="text" readonly value="{{ request.scheme }}://{{ request.get_host }}/share/{{ song.public_token }}/"
+             id="public-link" class="bg-transparent text-slate-400 text-xs w-56 focus:outline-none">
+      <button onclick="copyLink()" class="text-xs text-[#6c63ff] hover:text-white font-medium transition-colors">Copy</button>
+    </div>
+    {% else %}
+    <div id="public-link-wrap" class="hidden flex items-center gap-2 card px-3 py-2 rounded-xl">
+      <input type="text" readonly id="public-link" class="bg-transparent text-slate-400 text-xs w-56 focus:outline-none">
+      <button onclick="copyLink()" class="text-xs text-[#6c63ff] hover:text-white font-medium transition-colors">Copy</button>
+    </div>
+    {% endif %}
+
+    <!-- Regenerate → opens generate form prefilled with this song's values -->
+    <a href="/generate/?from={{ song.songId }}"
+       class="btn-secondary px-4 py-2.5 text-sm flex items-center gap-2">
+      🔄 Regenerate
+    </a>
+
+    <!-- Delete -->
+    <button onclick="deleteSong('{{ song.songId }}')" class="btn-danger px-4 py-2.5 text-sm ml-auto">
+      🗑 Delete
+    </button>
+
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const SONG_ID = '{{ song.songId }}';
+
+// Poll if song is still pending
+{% if song.status != 'SUCCESS' and song.status != 'FAILED' %}
+pollStatus();
+
+async function pollStatus() {
+  await sleep(4000);
+  try {
+    const res  = await fetch(`/songs/${SONG_ID}/status/`);
+    const data = await res.json();
+
+    if (data.status === 'SUCCESS') {
+      document.getElementById('status-badge') && (document.getElementById('status-badge').outerHTML = '<span class="badge badge-success">✓ Ready</span>');
+      const wrap = document.getElementById('audio-wrap');
+      if (wrap && data.audio_url) {
+        wrap.innerHTML = `<audio controls autoplay class="w-full"><source src="${data.audio_url}" type="audio/mpeg"></audio>`;
+      }
+      showToast('Song is ready!', 'success');
+    } else if (data.status === 'FAILED') {
+      document.getElementById('status-text') && (document.getElementById('status-text').textContent = 'Generation failed.');
+      showToast('Generation failed.', 'error');
+    } else {
+      pollStatus();
+    }
+  } catch {
+    setTimeout(pollStatus, 5000);
+  }
+}
+{% endif %}
+
+async function toggleVisibility() {
+  try {
+    const res  = await fetch(`/songs/${SONG_ID}/visibility/`, { method: 'POST' });
+    const data = await res.json();
+    const btn  = document.getElementById('share-btn');
+    const linkWrap = document.getElementById('public-link-wrap');
+    const linkInput = document.getElementById('public-link');
+
+    if (data.visibility === 'PUBLIC') {
+      btn.textContent = '🔒 Make Private';
+      const full = `${location.origin}/share/${data.public_url.split('/').filter(Boolean).pop()}/`;
+      linkInput.value = full;
+      linkWrap.classList.remove('hidden');
+      linkWrap.classList.add('flex');
+      showToast('Song is now public!', 'success');
+    } else {
+      btn.textContent = '🌐 Share Publicly';
+      linkWrap.classList.add('hidden');
+      linkWrap.classList.remove('flex');
+      showToast('Song is now private.', 'info');
+    }
+  } catch {
+    showToast('Failed to update visibility.', 'error');
+  }
+}
+
+function copyLink() {
+  const val = document.getElementById('public-link').value;
+  navigator.clipboard.writeText(val).then(() => showToast('Link copied!', 'success'));
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+</script>
+{% endblock %}

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}SongGen{% endblock %} — AI Music Generation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    *, *::before, *::after { font-family: 'Inter', sans-serif; box-sizing: border-box; }
+    html, body { background: #0f0f0f; color: #e2e8f0; margin: 0; padding: 0; }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #1a1a2e; }
+    ::-webkit-scrollbar-thumb { background: #6c63ff; border-radius: 3px; }
+
+    /* ── Nav glass ── */
+    .nav-glass {
+      background: rgba(15, 15, 15, 0.85);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid #2a2a3e;
+    }
+
+    /* ── Gradient text ── */
+    .gradient-text {
+      background: linear-gradient(135deg, #6c63ff 0%, #a78bfa 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: #1a1a2e;
+      border: 1px solid #2a2a3e;
+      border-radius: 1rem;
+    }
+    .card-hover {
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+    .card-hover:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 32px rgba(108, 99, 255, 0.18);
+      border-color: #6c63ff;
+    }
+
+    /* ── Buttons ── */
+    .btn-primary {
+      background: #6c63ff;
+      color: #fff;
+      border-radius: 0.75rem;
+      font-weight: 600;
+      transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+    }
+    .btn-primary:hover {
+      background: #5a52e8;
+      box-shadow: 0 4px 20px rgba(108, 99, 255, 0.4);
+    }
+    .btn-primary:active { transform: scale(0.97); }
+    .btn-secondary {
+      background: #1a1a2e;
+      color: #e2e8f0;
+      border: 1px solid #2a2a3e;
+      border-radius: 0.75rem;
+      font-weight: 500;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .btn-secondary:hover { background: #22224a; border-color: #6c63ff; }
+    .btn-danger {
+      background: #450a0a;
+      color: #fca5a5;
+      border: 1px solid #ef4444;
+      border-radius: 0.75rem;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+    .btn-danger:hover { background: #7f1d1d; }
+
+    /* ── Inputs ── */
+    .input-field {
+      background: #0f0f0f;
+      border: 1px solid #2a2a3e;
+      color: #e2e8f0;
+      border-radius: 0.75rem;
+      padding: 0.625rem 1rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      width: 100%;
+      font-size: 0.9rem;
+    }
+    .input-field:focus {
+      outline: none;
+      border-color: #6c63ff;
+      box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.15);
+    }
+    .input-field::placeholder { color: #475569; }
+
+    /* ── Status badges ── */
+    .badge { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.2rem 0.65rem; border-radius: 999px; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.04em; }
+    .badge-success { background: #064e3b; color: #6ee7b7; border: 1px solid #10b981; }
+    .badge-pending { background: #422006; color: #fcd34d; border: 1px solid #f59e0b; }
+    .badge-failed  { background: #450a0a; color: #fca5a5; border: 1px solid #ef4444; }
+    .badge-default { background: #1e1e2e; color: #94a3b8; border: 1px solid #2a2a3e; }
+
+    /* ── Genre chips ── */
+    .genre-POP       { background: #1e1b4b; color: #a5b4fc; border: 1px solid #4338ca; }
+    .genre-JAZZ      { background: #022c22; color: #6ee7b7; border: 1px solid #059669; }
+    .genre-ROCK      { background: #450a0a; color: #fca5a5; border: 1px solid #dc2626; }
+    .genre-HIPHOP    { background: #422006; color: #fcd34d; border: 1px solid #d97706; }
+    .genre-CLASSICAL { background: #0c4a6e; color: #7dd3fc; border: 1px solid #0284c7; }
+    .genre-ROMANCE   { background: #4a044e; color: #f0abfc; border: 1px solid #a21caf; }
+
+    /* ── Audio player ── */
+    audio { width: 100%; height: 36px; border-radius: 0.5rem; }
+    audio::-webkit-media-controls-panel { background: #0f0f0f; border-radius: 0.5rem; }
+
+    /* ── Toast notifications ── */
+    #toast-container { position: fixed; top: 1.5rem; right: 1.5rem; z-index: 9999; display: flex; flex-direction: column; gap: 0.5rem; pointer-events: none; }
+    .toast {
+      padding: 0.85rem 1.25rem; border-radius: 0.75rem; font-size: 0.85rem; font-weight: 500;
+      opacity: 0; transform: translateX(120%); transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.6); pointer-events: auto; max-width: 320px;
+    }
+    .toast.show { opacity: 1; transform: translateX(0); }
+    .toast-success { background: #064e3b; border: 1px solid #10b981; color: #6ee7b7; }
+    .toast-error   { background: #450a0a; border: 1px solid #ef4444; color: #fca5a5; }
+    .toast-info    { background: #1e1b4b; border: 1px solid #6c63ff; color: #c4b5fd; }
+
+    /* ── Spinner ── */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner { display: inline-block; width: 1.2rem; height: 1.2rem; border: 2px solid #2a2a3e; border-top-color: #6c63ff; border-radius: 50%; animation: spin 0.7s linear infinite; }
+
+    /* ── Progress bar animation ── */
+    @keyframes progress-indeterminate {
+      0%   { transform: translateX(-100%) scaleX(0.4); }
+      50%  { transform: translateX(50%)  scaleX(0.6); }
+      100% { transform: translateX(200%) scaleX(0.4); }
+    }
+    .progress-indeterminate { animation: progress-indeterminate 1.5s ease-in-out infinite; }
+
+    /* ── Pulse dot ── */
+    @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+    .pulse-dot { animation: pulse-dot 1.4s ease-in-out infinite; }
+
+    /* ── Glow on primary elements ── */
+    .glow-primary { box-shadow: 0 0 20px rgba(108, 99, 255, 0.35); }
+  </style>
+</head>
+<body>
+
+{% if request.user.is_authenticated %}
+<nav class="nav-glass sticky top-0 z-50">
+  <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+    <a href="/" class="flex items-center gap-2 select-none">
+      <span class="text-xl">🎵</span>
+      <span class="text-lg font-bold gradient-text">SongGen</span>
+    </a>
+
+    <div class="flex items-center gap-1">
+      <a href="/library/"
+         class="px-4 py-2 rounded-lg text-sm font-medium transition-colors {% if request.resolver_match.url_name == 'library' %}text-white bg-[#1a1a2e]{% else %}text-slate-400 hover:text-white hover:bg-[#1a1a2e]{% endif %}">
+        Library
+      </a>
+      <a href="/generate/"
+         class="px-4 py-2 rounded-lg text-sm font-medium transition-colors {% if request.resolver_match.url_name == 'generate' %}text-white bg-[#1a1a2e]{% else %}text-slate-400 hover:text-white hover:bg-[#1a1a2e]{% endif %}">
+        Generate
+      </a>
+      <a href="/how-to/"
+         class="px-4 py-2 rounded-lg text-sm font-medium transition-colors {% if request.resolver_match.url_name == 'how_to' %}text-white bg-[#1a1a2e]{% else %}text-slate-400 hover:text-white hover:bg-[#1a1a2e]{% endif %}">
+        How To
+      </a>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2 px-3 py-1.5 rounded-full" style="background:#1a1a2e;border:1px solid #2a2a3e;">
+        <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
+             style="background: linear-gradient(135deg,#6c63ff,#a78bfa);">
+          {{ request.user.email|slice:":1"|upper }}
+        </div>
+        <span class="text-sm text-slate-300 max-w-[140px] truncate">{{ request.user.email }}</span>
+      </div>
+      <a href="/accounts/logout/"
+         class="text-sm text-slate-500 hover:text-red-400 transition-colors px-2 py-1 rounded">
+        Logout
+      </a>
+    </div>
+  </div>
+</nav>
+{% endif %}
+
+<main>
+  {% block content %}{% endblock %}
+</main>
+
+<div id="toast-container"></div>
+
+<script>
+function showToast(message, type = 'info') {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.textContent = message;
+  container.appendChild(toast);
+  requestAnimationFrame(() => requestAnimationFrame(() => toast.classList.add('show')));
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 350);
+  }, 4000);
+}
+
+async function deleteSong(songId, redirectTo = '/library/') {
+  if (!confirm('Delete this song? This cannot be undone.')) return;
+  try {
+    const res = await fetch(`/songs/${songId}/delete/`, { method: 'DELETE' });
+    if (res.ok) {
+      showToast('Song deleted.', 'success');
+      setTimeout(() => { window.location.href = redirectTo; }, 800);
+    } else {
+      showToast('Failed to delete.', 'error');
+    }
+  } catch {
+    showToast('Network error.', 'error');
+  }
+}
+
+function statusBadgeHtml(status) {
+  const map = {
+    SUCCESS:       '<span class="badge badge-success">✓ Ready</span>',
+    PENDING:       '<span class="badge badge-pending pulse-dot">⏳ Generating</span>',
+    FAILED:        '<span class="badge badge-failed">✗ Failed</span>',
+    TEXT_SUCCESS:  '<span class="badge badge-pending">Lyrics ready</span>',
+    FIRST_SUCCESS: '<span class="badge badge-pending">Almost done</span>',
+  };
+  return map[status] || `<span class="badge badge-default">${status}</span>`;
+}
+</script>
+
+{% block scripts %}{% endblock %}
+</body>
+</html>

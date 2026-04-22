@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}{{ song.title }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex flex-col items-center justify-center px-6 py-16" style="background:#0f0f0f;">
+
+  <!-- Background glow -->
+  <div class="absolute top-1/3 left-1/2 -translate-x-1/2 w-80 h-80 rounded-full opacity-10 pointer-events-none"
+       style="background: radial-gradient(circle, #6c63ff, transparent); filter: blur(80px);"></div>
+
+  <!-- Branding -->
+  <a href="/" class="flex items-center gap-2 mb-10 select-none">
+    <span class="text-xl">🎵</span>
+    <span class="text-lg font-bold gradient-text">SongGen</span>
+  </a>
+
+  <!-- Player card -->
+  <div class="card w-full max-w-md p-8 rounded-2xl text-center relative">
+
+    <!-- Cover art -->
+    <div class="w-24 h-24 mx-auto rounded-2xl flex items-center justify-center text-4xl mb-5"
+         style="background: linear-gradient(135deg,
+           {% if song.genre == 'POP' %}#1e1b4b,#4338ca
+           {% elif song.genre == 'JAZZ' %}#022c22,#059669
+           {% elif song.genre == 'ROCK' %}#450a0a,#dc2626
+           {% elif song.genre == 'HIPHOP' %}#422006,#d97706
+           {% elif song.genre == 'CLASSICAL' %}#0c4a6e,#0284c7
+           {% elif song.genre == 'ROMANCE' %}#4a044e,#a21caf
+           {% else %}#1a1a2e,#2a2a3e{% endif %});">
+      {% if song.genre == 'POP' %}🎤{% elif song.genre == 'JAZZ' %}🎷{% elif song.genre == 'ROCK' %}🎸
+      {% elif song.genre == 'HIPHOP' %}🎧{% elif song.genre == 'CLASSICAL' %}🎻{% elif song.genre == 'ROMANCE' %}🎶
+      {% else %}🎵{% endif %}
+    </div>
+
+    <!-- Song info -->
+    <h1 class="text-xl font-bold text-white mb-1">{{ song.title }}</h1>
+    {% if song.artist %}
+    <p class="text-slate-400 text-sm mb-2">{{ song.artist }}</p>
+    {% endif %}
+    <div class="flex items-center justify-center gap-2 mb-5">
+      {% if song.genre %}
+      <span class="badge genre-{{ song.genre }}">{{ song.genre }}</span>
+      {% endif %}
+      {% if song.duration %}
+      <span class="text-slate-600 text-xs">{{ song.duration }}s</span>
+      {% endif %}
+    </div>
+
+    <!-- Audio player -->
+    {% if song.audio_url %}
+    <audio controls autoplay class="w-full mb-2">
+      <source src="{{ song.audio_url }}" type="audio/mpeg">
+      Your browser doesn't support audio playback.
+    </audio>
+    {% else %}
+    <p class="text-slate-500 text-sm mb-4">Audio not yet available.</p>
+    {% endif %}
+
+  </div>
+
+  <!-- CTA -->
+  <div class="mt-10 text-center">
+    <p class="text-slate-600 text-sm mb-3">Create your own AI-generated songs</p>
+    <a href="/" class="btn-primary px-6 py-3 text-sm inline-block">
+      Try SongGen Free →
+    </a>
+  </div>
+
+</div>
+{% endblock %}

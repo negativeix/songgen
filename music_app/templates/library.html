@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+{% block title %}My Library{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-6 py-10">
+
+  <!-- ── Page header ── -->
+  <div class="flex items-center justify-between mb-8">
+    <div>
+      <h1 class="text-3xl font-bold text-white">My Library</h1>
+      <p class="text-slate-500 text-sm mt-1">{{ songs|length }} song{% if songs|length != 1 %}s{% endif %}</p>
+    </div>
+    <a href="/generate/" class="btn-primary px-5 py-2.5 text-sm inline-flex items-center gap-2">
+      <span>+</span> Generate Song
+    </a>
+  </div>
+
+  <!-- ── Empty state ── -->
+  {% if not songs %}
+  <div class="flex flex-col items-center justify-center py-28 text-center">
+    <div class="text-6xl mb-5">🎵</div>
+    <h2 class="text-xl font-semibold text-white mb-2">No songs yet</h2>
+    <p class="text-slate-500 mb-7 max-w-sm">
+      Generate your first AI song — just describe what you want to hear.
+    </p>
+    <a href="/generate/" class="btn-primary px-6 py-3">Generate your first song</a>
+  </div>
+
+  {% else %}
+  <!-- ── Song grid ── -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" id="song-grid">
+    {% for song in songs %}
+    <div class="card card-hover p-5 flex flex-col gap-3 cursor-pointer song-card"
+         data-song-id="{{ song.songId }}"
+         data-status="{{ song.status }}"
+         id="card-{{ song.songId }}"
+         onclick="if(event.target.closest('button,audio,a')) return; window.location='/song/{{ song.songId }}/'">
+
+      <!-- Genre + status header -->
+      <div class="flex items-center justify-between">
+        {% if song.genre %}
+        <span class="badge genre-{{ song.genre }} text-xs">{{ song.genre }}</span>
+        {% else %}
+        <span class="badge badge-default text-xs">No genre</span>
+        {% endif %}
+        <span id="badge-{{ song.songId }}">
+          {% if song.status == 'SUCCESS' %}
+            <span class="badge badge-success">✓ Ready</span>
+          {% elif song.status == 'PENDING' or song.status == 'TEXT_SUCCESS' or song.status == 'FIRST_SUCCESS' %}
+            <span class="badge badge-pending pulse-dot">⏳ Generating</span>
+          {% else %}
+            <span class="badge badge-failed">✗ Failed</span>
+          {% endif %}
+        </span>
+      </div>
+
+      <!-- Cover art -->
+      <div class="rounded-xl h-28 flex items-center justify-center text-4xl relative overflow-hidden"
+           style="background: linear-gradient(135deg,
+             {% if song.genre == 'POP' %}#1e1b4b,#4338ca
+             {% elif song.genre == 'JAZZ' %}#022c22,#059669
+             {% elif song.genre == 'ROCK' %}#450a0a,#dc2626
+             {% elif song.genre == 'HIPHOP' %}#422006,#d97706
+             {% elif song.genre == 'CLASSICAL' %}#0c4a6e,#0284c7
+             {% elif song.genre == 'ROMANCE' %}#4a044e,#a21caf
+             {% else %}#1a1a2e,#2a2a3e{% endif %});">
+        {% if song.genre == 'POP' %}🎤
+        {% elif song.genre == 'JAZZ' %}🎷
+        {% elif song.genre == 'ROCK' %}🎸
+        {% elif song.genre == 'HIPHOP' %}🎧
+        {% elif song.genre == 'CLASSICAL' %}🎻
+        {% elif song.genre == 'ROMANCE' %}🎶
+        {% else %}🎵{% endif %}
+        <!-- Pending overlay -->
+        {% if song.status != 'SUCCESS' and song.status != 'FAILED' %}
+        <div id="overlay-{{ song.songId }}"
+             class="absolute inset-0 flex items-center justify-center"
+             style="background:rgba(0,0,0,0.55);">
+          <div class="flex flex-col items-center gap-2">
+            <div class="w-8 h-8 border-2 rounded-full border-yellow-400 border-t-transparent spinner"></div>
+            <span class="text-yellow-400 text-xs font-medium">Generating…</span>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Title + date -->
+      <div>
+        <p class="font-semibold text-white text-sm leading-tight truncate" title="{{ song.title }}">
+          {{ song.title }}
+        </p>
+        {% if song.artist %}
+        <p class="text-slate-500 text-xs truncate mt-0.5">{{ song.artist }}</p>
+        {% endif %}
+        <p class="text-slate-600 text-xs mt-1">
+          {% if song.created_at %}{{ song.created_at|date:"M j, Y" }}{% endif %}
+        </p>
+      </div>
+
+      <!-- Audio player (SUCCESS only) -->
+      {% if song.status == 'SUCCESS' and song.audio_url %}
+      <div id="player-{{ song.songId }}">
+        <audio controls preload="none">
+          <source src="{{ song.audio_url }}" type="audio/mpeg">
+        </audio>
+      </div>
+      {% else %}
+      <div id="player-{{ song.songId }}"></div>
+      {% endif %}
+
+      <!-- Actions -->
+      <div class="flex gap-2 mt-auto pt-1">
+        <a href="/song/{{ song.songId }}/"
+           class="btn-secondary flex-1 text-center text-xs px-3 py-2">
+          Details
+        </a>
+        <button onclick="event.stopPropagation(); deleteSong('{{ song.songId }}')"
+                class="btn-danger text-xs px-3 py-2">
+          Delete
+        </button>
+      </div>
+
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Poll all non-terminal songs
+document.querySelectorAll('.song-card[data-status="PENDING"], .song-card[data-status="TEXT_SUCCESS"], .song-card[data-status="FIRST_SUCCESS"]')
+  .forEach(card => pollCard(card.dataset.songId));
+
+function pollCard(songId) {
+  setTimeout(async () => {
+    try {
+      const res = await fetch(`/songs/${songId}/status/`);
+      const data = await res.json();
+      updateCard(songId, data);
+      if (!['SUCCESS','FAILED'].includes(data.status)) {
+        pollCard(songId); // continue polling
+      }
+    } catch {
+      setTimeout(() => pollCard(songId), 5000);
+    }
+  }, 3000);
+}
+
+function updateCard(songId, data) {
+  const badge  = document.getElementById(`badge-${songId}`);
+  const overlay = document.getElementById(`overlay-${songId}`);
+  const player = document.getElementById(`player-${songId}`);
+  const card   = document.getElementById(`card-${songId}`);
+
+  if (badge) badge.innerHTML = statusBadgeHtml(data.status);
+  if (card)  card.dataset.status = data.status;
+
+  if (data.status === 'SUCCESS') {
+    if (overlay) overlay.remove();
+    if (player && data.audio_url && !player.querySelector('audio')) {
+      player.innerHTML = `<audio controls preload="none"><source src="${data.audio_url}" type="audio/mpeg"></audio>`;
+    }
+    showToast(`"${data.title || 'Song'}" is ready!`, 'success');
+  } else if (data.status === 'FAILED') {
+    if (overlay) overlay.innerHTML = '<span class="text-red-400 text-xs font-medium">✗ Failed</span>';
+  }
+}
+</script>
+{% endblock %}
