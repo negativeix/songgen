@@ -132,9 +132,10 @@
             <p class="font-semibold text-sm leading-tight truncate" style="color:var(--text);" title="{{ song.title }}">
               {{ song.title }}
             </p>
-            {% if song.artist %}
-            <p class="text-xs truncate mt-0.5" style="color:var(--text-muted);">{{ song.artist }}</p>
-            {% endif %}
+            <!-- Always reserve one line for artist so cards stay same height -->
+            <p class="text-xs truncate mt-0.5" style="color:var(--text-muted);{% if not song.artist %}visibility:hidden;{% endif %}">
+              {{ song.artist|default:"—" }}
+            </p>
             <div class="flex items-center gap-2 mt-1 flex-wrap">
               {% if song.created_at %}
               <span class="text-xs" style="color:var(--text-dim);">{{ song.created_at|date:"M j, Y" }}</span>
@@ -143,26 +144,34 @@
               <span class="text-xs" style="color:var(--text-dim);">· {{ song.duration }}s</span>
               {% endif %}
             </div>
-            <!-- Folder badge -->
+            <!-- Always reserve folder badge row so cards stay same height -->
             {% with folder=song.folders.all.first %}
             {% if folder %}
             <span class="inline-flex items-center gap-1 text-xs mt-1 px-2 py-0.5 rounded-full"
                   style="background:var(--bg-card2);color:var(--text-muted);border:1px solid var(--border);">
               📁 {{ folder.name|truncatechars:14 }}
             </span>
+            {% else %}
+            <span class="inline-flex items-center gap-1 text-xs mt-1 px-2 py-0.5 rounded-full"
+                  style="background:var(--bg-card2);border:1px solid var(--border);visibility:hidden;">
+              📁 —
+            </span>
             {% endif %}
             {% endwith %}
           </div>
 
-          <!-- Audio player (SUCCESS only) — flex-shrink-0 prevents height collapse -->
+          <!-- Audio player — overflow:hidden clips the native ⋮ overflow button
+               by extending audio 36px beyond the wrapper's right edge -->
           {% if song.status == 'SUCCESS' and song.audio_url %}
-          <div id="player-{{ song.songId }}" class="flex-shrink-0">
-            <audio controls preload="none" class="w-full">
+          <div id="player-{{ song.songId }}" class="flex-shrink-0"
+               style="overflow:hidden;border-radius:0.5rem;">
+            <audio controls preload="none"
+                   style="width:calc(100% + 36px);margin-right:-36px;display:block;">
               <source src="{{ song.audio_url }}" type="audio/mpeg">
             </audio>
           </div>
           {% else %}
-          <div id="player-{{ song.songId }}" class="flex-shrink-0"></div>
+          <div id="player-{{ song.songId }}" class="flex-shrink-0" style="height:36px;"></div>
           {% endif %}
 
           <!-- Actions row -->
