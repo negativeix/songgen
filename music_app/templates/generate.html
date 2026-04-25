@@ -7,13 +7,13 @@
   <!-- ── Header ── -->
   <div class="mb-8">
     {% if prefill %}
-    <div class="flex items-center gap-2 mb-3 px-4 py-2.5 rounded-xl text-sm"
-         style="background:#1e1b4b;border:1px solid #4338ca;color:#a5b4fc;">
+    <div class="flex items-center gap-2 mb-3 px-4 py-2.5 rounded-xl text-sm inset-box"
+         style="color:#a5b4fc;border-color:#4338ca;">
       🔄 Editing a previous song's settings — adjust and generate a new version.
     </div>
     {% endif %}
-    <h1 class="text-3xl font-bold text-white">Generate a Song</h1>
-    <p class="text-slate-500 text-sm mt-1">Describe your track and our AI will create it.</p>
+    <h1 class="text-3xl font-bold" style="color:var(--text);">Generate a Song</h1>
+    <p class="text-sm mt-1" style="color:var(--text-muted);">Describe your track and our AI will create it.</p>
   </div>
 
   <!-- ── Form ── -->
@@ -21,18 +21,18 @@
 
     <!-- Prompt (required) -->
     <div>
-      <label class="block text-sm font-medium text-slate-300 mb-2">
+      <label class="block text-sm font-medium mb-2" style="color:var(--text-muted);">
         Prompt <span class="text-red-400">*</span>
       </label>
       <textarea name="prompt" id="prompt" rows="4" required
                 placeholder="e.g. An upbeat summer pop song about road trips and freedom, with catchy guitar riffs and a sing-along chorus"
                 class="input-field resize-none">{{ prefill.prompt|default:"" }}</textarea>
-      <p class="text-slate-600 text-xs mt-1.5">Be descriptive — mood, instruments, energy, theme all help.</p>
+      <p class="text-xs mt-1.5" style="color:var(--text-dim);">Be descriptive — mood, instruments, energy, theme all help.</p>
     </div>
 
     <!-- Title -->
     <div>
-      <label class="block text-sm font-medium text-slate-300 mb-2">Title</label>
+      <label class="block text-sm font-medium mb-2" style="color:var(--text-muted);">Title</label>
       <input name="title" id="title" type="text"
              placeholder="e.g. Summer Road Trip"
              value="{{ prefill.title|default:'' }}"
@@ -42,23 +42,23 @@
     <!-- Genre + Mood (2-col) -->
     <div class="grid grid-cols-2 gap-4">
       <div>
-        <label class="block text-sm font-medium text-slate-300 mb-2">Genre</label>
+        <label class="block text-sm font-medium mb-2" style="color:var(--text-muted);">Genre</label>
         <select name="genre" id="genre" class="input-field">
           <option value=""{% if not prefill.genre %} selected{% endif %}>— Any —</option>
           {% for val, label in genres %}
           <option value="{{ val }}"{% if prefill.genre == val %} selected{% endif %}>{{ label }}</option>
           {% empty %}
-          <option value="POP"  {% if prefill.genre == "POP"       %} selected{% endif %}>Pop</option>
-          <option value="JAZZ" {% if prefill.genre == "JAZZ"      %} selected{% endif %}>Jazz</option>
-          <option value="ROCK" {% if prefill.genre == "ROCK"      %} selected{% endif %}>Rock</option>
-          <option value="HIPHOP" {% if prefill.genre == "HIPHOP"  %} selected{% endif %}>Hip-Hop</option>
+          <option value="POP"       {% if prefill.genre == "POP"       %} selected{% endif %}>Pop</option>
+          <option value="JAZZ"      {% if prefill.genre == "JAZZ"      %} selected{% endif %}>Jazz</option>
+          <option value="ROCK"      {% if prefill.genre == "ROCK"      %} selected{% endif %}>Rock</option>
+          <option value="HIPHOP"    {% if prefill.genre == "HIPHOP"    %} selected{% endif %}>Hip-Hop</option>
           <option value="CLASSICAL" {% if prefill.genre == "CLASSICAL" %} selected{% endif %}>Classical</option>
-          <option value="ROMANCE" {% if prefill.genre == "ROMANCE" %} selected{% endif %}>Romance</option>
+          <option value="ROMANCE"   {% if prefill.genre == "ROMANCE"   %} selected{% endif %}>Romance</option>
           {% endfor %}
         </select>
       </div>
       <div>
-        <label class="block text-sm font-medium text-slate-300 mb-2">Mood</label>
+        <label class="block text-sm font-medium mb-2" style="color:var(--text-muted);">Mood</label>
         <input name="mood" id="mood" type="text"
                placeholder="e.g. energetic, melancholic"
                value="{{ prefill.mood|default:'' }}"
@@ -66,35 +66,50 @@
       </div>
     </div>
 
-    <!-- Vocal style -->
-    <div>
-      <label class="block text-sm font-medium text-slate-300 mb-2">Vocal Style</label>
-      <input name="vocal_style" id="vocal_style" type="text"
-             placeholder="e.g. female alto, male rap, choir"
-             value="{{ prefill.vocal_style|default:'' }}"
-             class="input-field">
+    <!-- Vocal style + Duration (2-col) -->
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm font-medium mb-2" style="color:var(--text-muted);">Vocal Style</label>
+        <input name="vocal_style" id="vocal_style" type="text"
+               placeholder="e.g. female alto, male rap"
+               value="{{ prefill.vocal_style|default:'' }}"
+               class="input-field">
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-2" style="color:var(--text-muted);">
+          Duration <span class="font-normal" style="color:var(--text-dim);">(seconds)</span>
+        </label>
+        <select name="duration" id="duration" class="input-field">
+          <option value=""  {% if not prefill.duration %} selected{% endif %}>— AI decides —</option>
+          <option value="60"  {% if prefill.duration == '60'  %} selected{% endif %}>~1 min (60s)</option>
+          <option value="90"  {% if prefill.duration == '90'  %} selected{% endif %}>~1.5 min (90s)</option>
+          <option value="120" {% if prefill.duration == '120' %} selected{% endif %}>~2 min (120s)</option>
+          <option value="180" {% if prefill.duration == '180' %} selected{% endif %}>~3 min (180s)</option>
+          <option value="240" {% if prefill.duration == '240' %} selected{% endif %}>~4 min (240s)</option>
+        </select>
+      </div>
     </div>
 
-    <!-- Instrumental toggle -->
-    <div class="flex items-center gap-3 p-4 rounded-xl" style="background:#1a1a2e;border:1px solid #2a2a3e;">
-      <label class="relative inline-flex items-center cursor-pointer">
+    <!-- Instrumental toggle — fully theme-aware, no hardcoded colors -->
+    <div class="inset-box flex items-center gap-3 p-4 rounded-xl">
+      <label class="relative inline-flex items-center cursor-pointer flex-shrink-0">
         <input type="checkbox" name="instrumental" id="instrumental" class="sr-only peer">
-        <div class="w-10 h-6 rounded-full peer-focus:outline-none transition-all
-                    bg-[#2a2a3e] peer-checked:bg-[#6c63ff]
+        <div class="toggle-track w-10 h-6 rounded-full peer-focus:outline-none
+                    peer-checked:bg-[#6c63ff]
                     after:content-[''] after:absolute after:top-[2px] after:left-[2px]
                     after:bg-white after:rounded-full after:h-5 after:w-5
                     after:transition-all peer-checked:after:translate-x-4"></div>
       </label>
       <div>
-        <p class="text-sm font-medium text-slate-200">Instrumental only</p>
-        <p class="text-xs text-slate-500">Generate music without vocals</p>
+        <p class="text-sm font-medium" style="color:var(--text);">Instrumental only</p>
+        <p class="text-xs" style="color:var(--text-muted);">Generate music without vocals</p>
       </div>
     </div>
 
     <!-- Lyrics (optional, hidden when instrumental) -->
     <div id="lyrics-wrap">
-      <label class="block text-sm font-medium text-slate-300 mb-2">
-        Lyrics <span class="text-slate-600">(optional)</span>
+      <label class="block text-sm font-medium mb-2" style="color:var(--text-muted);">
+        Lyrics <span style="color:var(--text-dim);">(optional)</span>
       </label>
       <textarea name="lyrics" id="lyrics" rows="5"
                 placeholder="Paste custom lyrics here — leave blank to let the AI write them"
@@ -112,22 +127,22 @@
   <div id="progress-section" class="hidden mt-8 card p-6 rounded-2xl">
     <div class="flex items-center gap-3 mb-4">
       <div class="spinner"></div>
-      <p class="text-white font-semibold" id="progress-text">Sending to AI…</p>
+      <p class="font-semibold" style="color:var(--text);" id="progress-text">Sending to AI…</p>
     </div>
-    <div class="h-1.5 rounded-full overflow-hidden" style="background:#2a2a3e;">
+    <div class="h-1.5 rounded-full overflow-hidden" style="background:var(--border);">
       <div class="h-full rounded-full bg-[#6c63ff] progress-indeterminate" style="width:40%;"></div>
     </div>
-    <p class="text-slate-500 text-xs mt-3" id="progress-sub">This usually takes 20–60 seconds.</p>
+    <p class="text-xs mt-3" style="color:var(--text-muted);" id="progress-sub">This usually takes 20–60 seconds.</p>
   </div>
 
   <!-- ── Result ── -->
   <div id="result-section" class="hidden mt-8 card p-6 rounded-2xl">
     <div class="flex items-center justify-between mb-4">
-      <h2 class="text-lg font-bold text-white" id="result-title">Song Ready!</h2>
+      <h2 class="text-lg font-bold" style="color:var(--text);" id="result-title">Song Ready!</h2>
       <span id="result-badge"></span>
     </div>
     <div id="result-player" class="mb-4"></div>
-    <p class="text-slate-500 text-xs mb-5" id="result-meta"></p>
+    <p class="text-xs mb-5" style="color:var(--text-muted);" id="result-meta"></p>
     <div class="flex gap-3">
       <a id="result-detail-link" href="#" class="btn-primary px-4 py-2.5 text-sm">
         View Details
@@ -161,6 +176,7 @@ document.getElementById('gen-form').addEventListener('submit', async function (e
   const prompt = document.getElementById('prompt').value.trim();
   if (!prompt) { showToast('Prompt is required.', 'error'); return; }
 
+  const rawDuration = document.getElementById('duration').value;
   const payload = {
     user_id:      USER_ID,
     prompt:       prompt,
@@ -170,6 +186,7 @@ document.getElementById('gen-form').addEventListener('submit', async function (e
     vocal_style:  document.getElementById('vocal_style').value.trim(),
     lyrics:       document.getElementById('lyrics').value.trim(),
     instrumental: document.getElementById('instrumental').checked,
+    duration:     rawDuration ? parseInt(rawDuration) : null,
   };
 
   showProgress('Sending to AI…');
@@ -192,7 +209,6 @@ document.getElementById('gen-form').addEventListener('submit', async function (e
     } else if (data.status === 'FAILED') {
       showError(data.error || 'AI returned a failure status.');
     } else {
-      // PENDING — start polling
       document.getElementById('progress-text').textContent = 'AI is composing your track…';
       document.getElementById('progress-sub').textContent  = `Song ID: ${data.song_id}`;
       pollResult(data.song_id);
@@ -213,15 +229,8 @@ async function pollResult(songId) {
     } else if (data.status === 'FAILED') {
       showError('AI failed to generate the track.');
     } else {
-      const labels = [
-        'Still composing…',
-        'Adding instruments…',
-        'Mixing the track…',
-        'Almost there…',
-        'Finalising audio…',
-      ];
-      document.getElementById('progress-text').textContent =
-        labels[Math.floor(Math.random() * labels.length)];
+      const labels = ['Still composing…','Adding instruments…','Mixing the track…','Almost there…','Finalising audio…'];
+      document.getElementById('progress-text').textContent = labels[Math.floor(Math.random() * labels.length)];
       pollResult(songId);
     }
   } catch {
@@ -243,8 +252,7 @@ function showProgress(msg) {
 function showResult(data) {
   document.getElementById('progress-section').classList.add('hidden');
   document.getElementById('error-section').classList.add('hidden');
-  const sec = document.getElementById('result-section');
-  sec.classList.remove('hidden');
+  document.getElementById('result-section').classList.remove('hidden');
 
   document.getElementById('result-title').textContent = data.title || 'Song Ready!';
   document.getElementById('result-badge').innerHTML   = statusBadgeHtml('SUCCESS');
@@ -253,9 +261,7 @@ function showResult(data) {
 
   if (data.audio_url) {
     document.getElementById('result-player').innerHTML =
-      `<audio controls autoplay class="w-full">
-         <source src="${data.audio_url}" type="audio/mpeg">
-       </audio>`;
+      `<audio controls autoplay class="w-full"><source src="${data.audio_url}" type="audio/mpeg"></audio>`;
   }
   showToast('Song generated!', 'success');
 }

@@ -5,132 +5,299 @@
 <div class="max-w-7xl mx-auto px-6 py-10">
 
   <!-- ── Page header ── -->
-  <div class="flex items-center justify-between mb-8">
+  <div class="flex items-center justify-between mb-6">
     <div>
-      <h1 class="text-3xl font-bold text-white">My Library</h1>
-      <p class="text-slate-500 text-sm mt-1">{{ songs|length }} song{% if songs|length != 1 %}s{% endif %}</p>
+      <h1 class="text-3xl font-bold" style="color:var(--text);">My Library</h1>
+      <p class="text-sm mt-1" style="color:var(--text-muted);">{{ songs|length }} song{% if songs|length != 1 %}s{% endif %}{% if selected_folder %} in "{{ selected_folder.name }}"{% endif %}</p>
     </div>
     <a href="/generate/" class="btn-primary px-5 py-2.5 text-sm inline-flex items-center gap-2">
       <span>+</span> Generate Song
     </a>
   </div>
 
-  <!-- ── Empty state ── -->
-  {% if not songs %}
-  <div class="flex flex-col items-center justify-center py-28 text-center">
-    <div class="text-6xl mb-5">🎵</div>
-    <h2 class="text-xl font-semibold text-white mb-2">No songs yet</h2>
-    <p class="text-slate-500 mb-7 max-w-sm">
-      Generate your first AI song — just describe what you want to hear.
-    </p>
-    <a href="/generate/" class="btn-primary px-6 py-3">Generate your first song</a>
-  </div>
+  <div class="flex gap-6">
 
-  {% else %}
-  <!-- ── Song grid ── -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" id="song-grid">
-    {% for song in songs %}
-    <div class="card card-hover p-5 flex flex-col gap-3 cursor-pointer song-card"
-         data-song-id="{{ song.songId }}"
-         data-status="{{ song.status }}"
-         id="card-{{ song.songId }}"
-         onclick="if(event.target.closest('button,audio,a')) return; window.location='/song/{{ song.songId }}/'">
+    <!-- ── Left sidebar: folder tree ── -->
+    <aside class="w-56 flex-shrink-0 hidden sm:block">
+      <div class="card p-3 rounded-2xl sticky top-24">
 
-      <!-- Genre + status header -->
-      <div class="flex items-center justify-between">
-        {% if song.genre %}
-        <span class="badge genre-{{ song.genre }} text-xs">{{ song.genre }}</span>
-        {% else %}
-        <span class="badge badge-default text-xs">No genre</span>
-        {% endif %}
-        <span id="badge-{{ song.songId }}">
-          {% if song.status == 'SUCCESS' %}
-            <span class="badge badge-success">✓ Ready</span>
-          {% elif song.status == 'PENDING' or song.status == 'TEXT_SUCCESS' or song.status == 'FIRST_SUCCESS' %}
-            <span class="badge badge-pending pulse-dot">⏳ Generating</span>
-          {% else %}
-            <span class="badge badge-failed">✗ Failed</span>
-          {% endif %}
-        </span>
-      </div>
+        <!-- All Songs (also a drop target to remove from folder) -->
+        <a href="/library/"
+           data-folder-id="__none__"
+           ondragover="folderDragOver(event)"
+           ondragenter="folderDragEnter(event)"
+           ondragleave="folderDragLeave(event)"
+           ondrop="folderDrop(event)"
+           class="flex items-center justify-between px-3 py-2 rounded-lg text-sm mb-1 transition-colors
+                  {% if not selected_folder %}font-semibold{% else %}hover:bg-[var(--bg-card2)]{% endif %}"
+           style="{% if not selected_folder %}background:var(--bg-card2);color:var(--text);{% else %}color:var(--text-muted);{% endif %}">
+          <span class="flex items-center gap-2">🎵 All Songs</span>
+        </a>
 
-      <!-- Cover art -->
-      <div class="rounded-xl h-28 flex items-center justify-center text-4xl relative overflow-hidden"
-           style="background: linear-gradient(135deg,
-             {% if song.genre == 'POP' %}#1e1b4b,#4338ca
-             {% elif song.genre == 'JAZZ' %}#022c22,#059669
-             {% elif song.genre == 'ROCK' %}#450a0a,#dc2626
-             {% elif song.genre == 'HIPHOP' %}#422006,#d97706
-             {% elif song.genre == 'CLASSICAL' %}#0c4a6e,#0284c7
-             {% elif song.genre == 'ROMANCE' %}#4a044e,#a21caf
-             {% else %}#1a1a2e,#2a2a3e{% endif %});">
-        {% if song.genre == 'POP' %}🎤
-        {% elif song.genre == 'JAZZ' %}🎷
-        {% elif song.genre == 'ROCK' %}🎸
-        {% elif song.genre == 'HIPHOP' %}🎧
-        {% elif song.genre == 'CLASSICAL' %}🎻
-        {% elif song.genre == 'ROMANCE' %}🎶
-        {% else %}🎵{% endif %}
-        <!-- Pending overlay -->
-        {% if song.status != 'SUCCESS' and song.status != 'FAILED' %}
-        <div id="overlay-{{ song.songId }}"
-             class="absolute inset-0 flex items-center justify-center"
-             style="background:rgba(0,0,0,0.55);">
-          <div class="flex flex-col items-center gap-2">
-            <div class="w-8 h-8 border-2 rounded-full border-yellow-400 border-t-transparent spinner"></div>
-            <span class="text-yellow-400 text-xs font-medium">Generating…</span>
-          </div>
+        <!-- Folder tree -->
+        {% if folders %}
+        <div class="border-t mt-2 pt-2" style="border-color:var(--border);">
+          <p class="text-xs uppercase tracking-widest mb-2 px-3" style="color:var(--text-dim);">Folders</p>
+          <ul class="space-y-0.5">
+            {% include "_folder_tree.html" with folders=folders %}
+          </ul>
         </div>
         {% endif %}
+
+        <!-- New Folder button -->
+        <div class="border-t mt-3 pt-3" style="border-color:var(--border);">
+          <button onclick="openNewFolderModal()"
+                  class="w-full text-left px-3 py-2 rounded-lg text-sm transition-colors hover:bg-[var(--bg-card2)]"
+                  style="color:var(--text-dim);">
+            + New Folder
+          </button>
+        </div>
+
+      </div>
+    </aside>
+
+    <!-- ── Main content ── -->
+    <div class="flex-1 min-w-0">
+
+      {% if not songs %}
+      <div class="flex flex-col items-center justify-center py-28 text-center">
+        <div class="text-6xl mb-5">🎵</div>
+        <h2 class="text-xl font-semibold mb-2" style="color:var(--text);">
+          {% if selected_folder %}No songs in this folder{% else %}No songs yet{% endif %}
+        </h2>
+        <p class="text-sm mb-7 max-w-sm" style="color:var(--text-muted);">
+          {% if selected_folder %}Move songs here from the library, or generate a new one.{% else %}Generate your first AI song — just describe what you want to hear.{% endif %}
+        </p>
+        <a href="/generate/" class="btn-primary px-6 py-3">Generate a song</a>
       </div>
 
-      <!-- Title + date -->
-      <div>
-        <p class="font-semibold text-white text-sm leading-tight truncate" title="{{ song.title }}">
-          {{ song.title }}
-        </p>
-        {% if song.artist %}
-        <p class="text-slate-500 text-xs truncate mt-0.5">{{ song.artist }}</p>
-        {% endif %}
-        <p class="text-slate-600 text-xs mt-1">
-          {% if song.created_at %}{{ song.created_at|date:"M j, Y" }}{% endif %}
-        </p>
-      </div>
-
-      <!-- Audio player (SUCCESS only) -->
-      {% if song.status == 'SUCCESS' and song.audio_url %}
-      <div id="player-{{ song.songId }}">
-        <audio controls preload="none">
-          <source src="{{ song.audio_url }}" type="audio/mpeg">
-        </audio>
-      </div>
       {% else %}
-      <div id="player-{{ song.songId }}"></div>
+      <!-- Song grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" id="song-grid">
+        {% for song in songs %}
+        <div class="card card-hover p-4 flex flex-col gap-2 cursor-pointer song-card"
+             data-song-id="{{ song.songId }}"
+             data-status="{{ song.status }}"
+             id="card-{{ song.songId }}"
+             draggable="true"
+             ondragstart="songDragStart(event, '{{ song.songId }}')"
+             ondragend="songDragEnd(event)"
+             onclick="if(event.target.closest('button,audio,a,select')) return; window.location='/song/{{ song.songId }}/'">
+
+          <!-- Genre + status header -->
+          <div class="flex items-center justify-between min-w-0 gap-1">
+            <span class="badge text-xs flex-shrink-0 {% if song.genre %}genre-{{ song.genre }}{% else %}badge-default{% endif %}">{{ song.genre|default:"—" }}</span>
+            <span id="badge-{{ song.songId }}" class="flex-shrink-0">
+              {% if song.status == 'SUCCESS' %}
+                <span class="badge badge-success">✓ Ready</span>
+              {% elif song.status == 'PENDING' or song.status == 'TEXT_SUCCESS' or song.status == 'FIRST_SUCCESS' %}
+                <span class="badge badge-pending pulse-dot">⏳ Gen…</span>
+              {% else %}
+                <span class="badge badge-failed">✗ Failed</span>
+              {% endif %}
+            </span>
+          </div>
+
+          <!-- Cover art -->
+          <div class="rounded-xl h-28 flex items-center justify-center text-4xl relative overflow-hidden flex-shrink-0"
+               style="background: linear-gradient(135deg,
+                 {% if song.genre == 'POP' %}#1e1b4b,#4338ca
+                 {% elif song.genre == 'JAZZ' %}#022c22,#059669
+                 {% elif song.genre == 'ROCK' %}#450a0a,#dc2626
+                 {% elif song.genre == 'HIPHOP' %}#422006,#d97706
+                 {% elif song.genre == 'CLASSICAL' %}#0c4a6e,#0284c7
+                 {% elif song.genre == 'ROMANCE' %}#4a044e,#a21caf
+                 {% else %}#1a1a2e,#2a2a3e{% endif %});">
+            {% if song.genre == 'POP' %}🎤
+            {% elif song.genre == 'JAZZ' %}🎷
+            {% elif song.genre == 'ROCK' %}🎸
+            {% elif song.genre == 'HIPHOP' %}🎧
+            {% elif song.genre == 'CLASSICAL' %}🎻
+            {% elif song.genre == 'ROMANCE' %}🎶
+            {% else %}🎵{% endif %}
+            {% if song.status != 'SUCCESS' and song.status != 'FAILED' %}
+            <div id="overlay-{{ song.songId }}"
+                 class="absolute inset-0 flex items-center justify-center"
+                 style="background:rgba(0,0,0,0.55);">
+              <div class="flex flex-col items-center gap-2">
+                <div class="w-8 h-8 border-2 rounded-full border-yellow-400 border-t-transparent spinner"></div>
+                <span class="text-yellow-400 text-xs font-medium">Generating…</span>
+              </div>
+            </div>
+            {% endif %}
+          </div>
+
+          <!-- Title + artist + meta -->
+          <div class="min-w-0">
+            <p class="font-semibold text-sm leading-tight truncate" style="color:var(--text);" title="{{ song.title }}">
+              {{ song.title }}
+            </p>
+            {% if song.artist %}
+            <p class="text-xs truncate mt-0.5" style="color:var(--text-muted);">{{ song.artist }}</p>
+            {% endif %}
+            <div class="flex items-center gap-2 mt-1 flex-wrap">
+              {% if song.created_at %}
+              <span class="text-xs" style="color:var(--text-dim);">{{ song.created_at|date:"M j, Y" }}</span>
+              {% endif %}
+              {% if song.duration %}
+              <span class="text-xs" style="color:var(--text-dim);">· {{ song.duration }}s</span>
+              {% endif %}
+            </div>
+            <!-- Folder badge -->
+            {% with folder=song.folders.all.first %}
+            {% if folder %}
+            <span class="inline-flex items-center gap-1 text-xs mt-1 px-2 py-0.5 rounded-full"
+                  style="background:var(--bg-card2);color:var(--text-muted);border:1px solid var(--border);">
+              📁 {{ folder.name|truncatechars:14 }}
+            </span>
+            {% endif %}
+            {% endwith %}
+          </div>
+
+          <!-- Audio player (SUCCESS only) — flex-shrink-0 prevents height collapse -->
+          {% if song.status == 'SUCCESS' and song.audio_url %}
+          <div id="player-{{ song.songId }}" class="flex-shrink-0">
+            <audio controls preload="none" class="w-full">
+              <source src="{{ song.audio_url }}" type="audio/mpeg">
+            </audio>
+          </div>
+          {% else %}
+          <div id="player-{{ song.songId }}" class="flex-shrink-0"></div>
+          {% endif %}
+
+          <!-- Actions row -->
+          <div class="flex items-center gap-1.5 mt-auto pt-1 min-w-0">
+
+            <a href="/song/{{ song.songId }}/"
+               class="btn-secondary flex-1 text-center text-xs px-2 py-2 min-w-0 truncate">
+              Details
+            </a>
+
+            <!-- Folder picker — custom styled dropdown -->
+            {% if all_folders %}
+            <div class="relative flex-shrink-0" onclick="event.stopPropagation()">
+              <button class="btn-secondary text-xs px-2 py-2"
+                      onclick="toggleFolderPicker('{{ song.songId }}')"
+                      title="Move to folder">📁</button>
+              <div id="fpicker-{{ song.songId }}" class="folder-picker-menu hidden">
+                <div class="folder-picker-option" onclick="pickFolder('{{ song.songId }}','__none__')">— Unfiled —</div>
+                {% for f in all_folders %}
+                <div class="folder-picker-option" onclick="pickFolder('{{ song.songId }}','{{ f.folderId }}')">
+                  📁 {{ f.name|truncatechars:22 }}
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
+
+            <button onclick="event.stopPropagation(); deleteSong('{{ song.songId }}')"
+                    class="btn-danger text-xs px-2 py-2 flex-shrink-0">
+              Del
+            </button>
+
+          </div>
+
+        </div>
+        {% endfor %}
+      </div>
       {% endif %}
 
-      <!-- Actions -->
-      <div class="flex gap-2 mt-auto pt-1">
-        <a href="/song/{{ song.songId }}/"
-           class="btn-secondary flex-1 text-center text-xs px-3 py-2">
-          Details
-        </a>
-        <button onclick="event.stopPropagation(); deleteSong('{{ song.songId }}')"
-                class="btn-danger text-xs px-3 py-2">
-          Delete
-        </button>
-      </div>
-
     </div>
-    {% endfor %}
   </div>
-  {% endif %}
-
 </div>
+
+<!-- ── New Folder modal ── -->
+<div id="new-folder-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center"
+     style="background:rgba(0,0,0,0.6);" onclick="if(event.target===this) closeNewFolderModal();">
+  <div class="card p-6 rounded-2xl w-full max-w-sm mx-4">
+    <h2 class="text-base font-semibold mb-4" style="color:var(--text);">New Folder</h2>
+    <input type="text" id="new-folder-name" placeholder="Folder name"
+           class="input-field mb-3" maxlength="100"
+           onkeydown="if(event.key==='Enter') createFolder();">
+    {% if folders %}
+    <select id="new-folder-parent" class="input-field mb-4 text-sm">
+      <option value="">No parent (top-level)</option>
+      {% for f in all_folders %}
+      <option value="{{ f.folderId }}">{{ f.name }}</option>
+      {% endfor %}
+    </select>
+    {% endif %}
+    <div class="flex gap-3 justify-end">
+      <button onclick="closeNewFolderModal()" class="btn-secondary px-4 py-2 text-sm">Cancel</button>
+      <button onclick="createFolder()" class="btn-primary px-4 py-2 text-sm">Create</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Rename Folder modal ── -->
+<div id="rename-folder-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center"
+     style="background:rgba(0,0,0,0.6);" onclick="if(event.target===this) closeRenameFolderModal();">
+  <div class="card p-6 rounded-2xl w-full max-w-sm mx-4">
+    <h2 class="text-base font-semibold mb-4" style="color:var(--text);">Rename Folder</h2>
+    <input type="hidden" id="rename-folder-id">
+    <input type="text" id="rename-folder-name" placeholder="New name"
+           class="input-field mb-4" maxlength="100"
+           onkeydown="if(event.key==='Enter') submitRenameFolder();">
+    <div class="flex gap-3 justify-end">
+      <button onclick="closeRenameFolderModal()" class="btn-secondary px-4 py-2 text-sm">Cancel</button>
+      <button onclick="submitRenameFolder()" class="btn-primary px-4 py-2 text-sm">Rename</button>
+    </div>
+  </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
+<style>
+  /* ── Drag-and-drop feedback ── */
+  .folder-drop-active {
+    background: rgba(108,99,255,0.18) !important;
+    outline: 2px solid #6c63ff;
+    outline-offset: -2px;
+    border-radius: 0.5rem;
+  }
+  .song-card[draggable="true"]:hover { cursor: grab; }
+  .song-card.dragging { opacity: 0.45; cursor: grabbing; }
+
+  /* ── Custom folder picker dropdown ── */
+  .folder-picker-menu {
+    position: absolute;
+    bottom: calc(100% + 6px);
+    right: 0;
+    min-width: 160px;
+    max-width: 220px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.45);
+    z-index: 100;
+    overflow: hidden;
+    animation: fpFadeUp 0.14s ease;
+  }
+  @keyframes fpFadeUp {
+    from { opacity: 0; transform: translateY(5px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .folder-picker-option {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: background 0.12s, color 0.12s;
+  }
+  .folder-picker-option:hover {
+    background: var(--bg-card2);
+    color: var(--text);
+  }
+  .folder-picker-option + .folder-picker-option {
+    border-top: 1px solid var(--border);
+  }
+</style>
 <script>
-// Poll all non-terminal songs
+// ── Library-page polling for PENDING cards ──
 document.querySelectorAll('.song-card[data-status="PENDING"], .song-card[data-status="TEXT_SUCCESS"], .song-card[data-status="FIRST_SUCCESS"]')
   .forEach(card => pollCard(card.dataset.songId));
 
@@ -140,9 +307,7 @@ function pollCard(songId) {
       const res = await fetch(`/songs/${songId}/status/`);
       const data = await res.json();
       updateCard(songId, data);
-      if (!['SUCCESS','FAILED'].includes(data.status)) {
-        pollCard(songId); // continue polling
-      }
+      if (!['SUCCESS','FAILED'].includes(data.status)) pollCard(songId);
     } catch {
       setTimeout(() => pollCard(songId), 5000);
     }
@@ -150,23 +315,175 @@ function pollCard(songId) {
 }
 
 function updateCard(songId, data) {
-  const badge  = document.getElementById(`badge-${songId}`);
+  const badge   = document.getElementById(`badge-${songId}`);
   const overlay = document.getElementById(`overlay-${songId}`);
-  const player = document.getElementById(`player-${songId}`);
-  const card   = document.getElementById(`card-${songId}`);
-
-  if (badge) badge.innerHTML = statusBadgeHtml(data.status);
-  if (card)  card.dataset.status = data.status;
-
+  const player  = document.getElementById(`player-${songId}`);
+  const card    = document.getElementById(`card-${songId}`);
+  if (badge)  badge.innerHTML = statusBadgeHtml(data.status);
+  if (card)   card.dataset.status = data.status;
   if (data.status === 'SUCCESS') {
+    (window.__sgPageHandled = window.__sgPageHandled || new Set()).add(songId);
     if (overlay) overlay.remove();
     if (player && data.audio_url && !player.querySelector('audio')) {
-      player.innerHTML = `<audio controls preload="none"><source src="${data.audio_url}" type="audio/mpeg"></audio>`;
+      player.innerHTML = `<audio controls preload="none" class="w-full"><source src="${data.audio_url}" type="audio/mpeg"></audio>`;
     }
     showToast(`"${data.title || 'Song'}" is ready!`, 'success');
   } else if (data.status === 'FAILED') {
+    (window.__sgPageHandled = window.__sgPageHandled || new Set()).add(songId);
     if (overlay) overlay.innerHTML = '<span class="text-red-400 text-xs font-medium">✗ Failed</span>';
+    showToast(`Generation failed for "${data.title || 'song'}"`, 'error');
   }
+}
+
+// ── New Folder modal ──
+function openNewFolderModal() {
+  document.getElementById('new-folder-modal').classList.remove('hidden');
+  setTimeout(() => document.getElementById('new-folder-name').focus(), 50);
+}
+function closeNewFolderModal() {
+  document.getElementById('new-folder-modal').classList.add('hidden');
+  document.getElementById('new-folder-name').value = '';
+}
+async function createFolder() {
+  const name = document.getElementById('new-folder-name').value.trim();
+  if (!name) { showToast('Enter a folder name.', 'error'); return; }
+  const parentEl = document.getElementById('new-folder-parent');
+  const parent_id = parentEl ? parentEl.value : '';
+  try {
+    const res = await fetch('/songs/folders/create/', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ name, parent_id: parent_id || null }),
+    });
+    if (res.ok) {
+      showToast('Folder created!', 'success');
+      closeNewFolderModal();
+      setTimeout(() => location.reload(), 600);
+    } else {
+      showToast('Failed to create folder.', 'error');
+    }
+  } catch { showToast('Network error.', 'error'); }
+}
+
+// ── Rename Folder modal ──
+function openRenameFolderModal(folderId, currentName) {
+  document.getElementById('rename-folder-id').value = folderId;
+  document.getElementById('rename-folder-name').value = currentName;
+  document.getElementById('rename-folder-modal').classList.remove('hidden');
+  setTimeout(() => {
+    const inp = document.getElementById('rename-folder-name');
+    inp.focus(); inp.select();
+  }, 50);
+}
+function closeRenameFolderModal() {
+  document.getElementById('rename-folder-modal').classList.add('hidden');
+}
+async function submitRenameFolder() {
+  const folderId = document.getElementById('rename-folder-id').value;
+  const name = document.getElementById('rename-folder-name').value.trim();
+  if (!name) { showToast('Enter a folder name.', 'error'); return; }
+  try {
+    const res = await fetch(`/songs/folders/${folderId}/update/`, {
+      method: 'PUT',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ name }),
+    });
+    if (res.ok) {
+      showToast('Folder renamed!', 'success');
+      closeRenameFolderModal();
+      setTimeout(() => location.reload(), 600);
+    } else {
+      showToast('Failed to rename folder.', 'error');
+    }
+  } catch { showToast('Network error.', 'error'); }
+}
+
+// ── Delete Folder ──
+async function deleteFolder(folderId) {
+  if (!confirm('Delete this folder? Songs inside will be moved to All Songs.')) return;
+  try {
+    const res = await fetch(`/songs/folders/${folderId}/delete/`, { method: 'DELETE' });
+    if (res.ok) {
+      showToast('Folder deleted.', 'success');
+      setTimeout(() => location.reload(), 600);
+    } else {
+      showToast('Failed to delete folder.', 'error');
+    }
+  } catch { showToast('Network error.', 'error'); }
+}
+
+// ── Move song to folder ──
+async function moveToFolder(songId, targetFolderId) {
+  const body = { song_id: songId, target_folder_id: targetFolderId === '__none__' ? null : targetFolderId };
+  try {
+    const res = await fetch('/songs/folders/songs/move/', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(body),
+    });
+    if (res.ok) {
+      showToast('Song moved.', 'success');
+    } else {
+      showToast('Failed to move song.', 'error');
+    }
+  } catch { showToast('Network error.', 'error'); }
+}
+
+// ── Custom folder picker dropdown ──
+function toggleFolderPicker(songId) {
+  const menu = document.getElementById(`fpicker-${songId}`);
+  const isOpen = !menu.classList.contains('hidden');
+  closeAllFolderPickers();
+  if (!isOpen) {
+    menu.classList.remove('hidden');
+    // Elevate this card above siblings so the dropdown renders on top
+    // (card-hover uses transform which creates a stacking context)
+    const card = document.getElementById(`card-${songId}`);
+    if (card) card.style.zIndex = '50';
+  }
+}
+function closeAllFolderPickers() {
+  document.querySelectorAll('.folder-picker-menu').forEach(m => m.classList.add('hidden'));
+  document.querySelectorAll('.song-card').forEach(c => c.style.zIndex = '');
+}
+function pickFolder(songId, folderId) {
+  closeAllFolderPickers();
+  moveToFolder(songId, folderId);
+}
+// Close picker when clicking anywhere outside it
+document.addEventListener('click', closeAllFolderPickers);
+
+// ── Drag and Drop ──
+function songDragStart(e, songId) {
+  e.dataTransfer.setData('text/plain', songId);
+  e.dataTransfer.effectAllowed = 'move';
+  e.currentTarget.classList.add('dragging');
+}
+function songDragEnd(e) {
+  e.currentTarget.classList.remove('dragging');
+}
+
+function folderDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+}
+function folderDragEnter(e) {
+  e.preventDefault();
+  e.currentTarget.classList.add('folder-drop-active');
+}
+function folderDragLeave(e) {
+  if (!e.currentTarget.contains(e.relatedTarget)) {
+    e.currentTarget.classList.remove('folder-drop-active');
+  }
+}
+async function folderDrop(e) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('folder-drop-active');
+  const folderId = e.currentTarget.dataset.folderId;
+  const songId = e.dataTransfer.getData('text/plain');
+  if (!songId || !folderId) return;
+  await moveToFolder(songId, folderId);
+  setTimeout(() => location.reload(), 700);
 }
 </script>
 {% endblock %}

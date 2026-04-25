@@ -2,20 +2,24 @@
 {% block title %}{{ song.title }}{% endblock %}
 
 {% block content %}
-<div class="min-h-screen flex flex-col items-center justify-center px-6 py-16" style="background:#0f0f0f;">
+<div class="min-h-screen flex flex-col items-center justify-center px-6 py-16 relative">
 
   <!-- Background glow -->
   <div class="absolute top-1/3 left-1/2 -translate-x-1/2 w-80 h-80 rounded-full opacity-10 pointer-events-none"
        style="background: radial-gradient(circle, #6c63ff, transparent); filter: blur(80px);"></div>
 
-  <!-- Branding -->
-  <a href="/" class="flex items-center gap-2 mb-10 select-none">
+  <!-- Branding (only shown when user is not logged in — nav hidden) -->
+  {% if not request.user.is_authenticated %}
+  <a href="/" class="flex items-center gap-2 mb-10 select-none z-10">
     <span class="text-xl">🎵</span>
     <span class="text-lg font-bold gradient-text">SongGen</span>
   </a>
+  {% else %}
+  <div class="mb-10"></div>
+  {% endif %}
 
   <!-- Player card -->
-  <div class="card w-full max-w-md p-8 rounded-2xl text-center relative">
+  <div class="card w-full max-w-md p-8 rounded-2xl text-center relative z-10">
 
     <!-- Cover art -->
     <div class="w-24 h-24 mx-auto rounded-2xl flex items-center justify-center text-4xl mb-5"
@@ -33,38 +37,63 @@
     </div>
 
     <!-- Song info -->
-    <h1 class="text-xl font-bold text-white mb-1">{{ song.title }}</h1>
+    <h1 class="text-xl font-bold mb-1" style="color:var(--text);">{{ song.title }}</h1>
     {% if song.artist %}
-    <p class="text-slate-400 text-sm mb-2">{{ song.artist }}</p>
+    <p class="text-sm mb-2" style="color:var(--text-muted);">{{ song.artist }}</p>
     {% endif %}
     <div class="flex items-center justify-center gap-2 mb-5">
       {% if song.genre %}
       <span class="badge genre-{{ song.genre }}">{{ song.genre }}</span>
       {% endif %}
       {% if song.duration %}
-      <span class="text-slate-600 text-xs">{{ song.duration }}s</span>
+      <span class="text-xs" style="color:var(--text-dim);">{{ song.duration }}s</span>
       {% endif %}
     </div>
 
-    <!-- Audio player -->
+    <!-- Audio player — high-contrast wrapper so controls are visible in both themes -->
     {% if song.audio_url %}
-    <audio controls autoplay class="w-full mb-2">
-      <source src="{{ song.audio_url }}" type="audio/mpeg">
-      Your browser doesn't support audio playback.
-    </audio>
+    <div class="rounded-xl p-2 mb-4" style="background:rgba(108,99,255,0.12);border:1px solid var(--border);">
+      <audio controls autoplay class="w-full">
+        <source src="{{ song.audio_url }}" type="audio/mpeg">
+        Your browser doesn't support audio playback.
+      </audio>
+    </div>
+    <a href="/songs/{{ song.songId }}/download/"
+       class="btn-secondary px-5 py-2.5 text-sm inline-flex items-center gap-2 mb-2">
+      ⬇ Download
+    </a>
     {% else %}
-    <p class="text-slate-500 text-sm mb-4">Audio not yet available.</p>
+    <p class="text-sm mb-4" style="color:var(--text-dim);">Audio not yet available.</p>
     {% endif %}
 
   </div>
 
   <!-- CTA -->
-  <div class="mt-10 text-center">
-    <p class="text-slate-600 text-sm mb-3">Create your own AI-generated songs</p>
+  <div class="mt-10 text-center z-10">
+    <p class="text-sm mb-3" style="color:var(--text-dim);">Create your own AI-generated songs</p>
     <a href="/" class="btn-primary px-6 py-3 text-sm inline-block">
       Try SongGen Free →
     </a>
   </div>
 
 </div>
+
+<!-- Floating theme toggle for unauthenticated visitors (no nav shown) -->
+{% if not request.user.is_authenticated %}
+<div class="fixed top-4 right-4 z-50">
+  <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle theme" aria-label="Toggle theme">🌙</button>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if not request.user.is_authenticated %}
+<script>
+(function() {
+  var t = localStorage.getItem('theme') || 'dark';
+  var btn = document.getElementById('theme-btn');
+  if (btn) btn.textContent = t === 'light' ? '☀️' : '🌙';
+})();
+</script>
+{% endif %}
 {% endblock %}

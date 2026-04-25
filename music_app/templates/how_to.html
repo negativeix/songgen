@@ -5,8 +5,8 @@
 <div class="max-w-3xl mx-auto px-6 py-10">
 
   <div class="mb-10">
-    <h1 class="text-3xl font-bold text-white">How To Use SongGen</h1>
-    <p class="text-slate-500 mt-2">Everything you need to know about creating AI music.</p>
+    <h1 class="text-3xl font-bold text-[var(--text)]">How To Use SongGen</h1>
+    <p class="text-[var(--text-muted)] mt-2">Everything you need to know about creating AI music.</p>
   </div>
 
   <!-- ── Steps ── -->
@@ -16,8 +16,8 @@
       <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold flex-shrink-0"
            style="background:linear-gradient(135deg,#6c63ff,#a78bfa);color:#fff;">1</div>
       <div>
-        <h3 class="font-semibold text-white mb-1">Sign in with Google</h3>
-        <p class="text-slate-500 text-sm leading-relaxed">
+        <h3 class="font-semibold text-[var(--text)] mb-1">Sign in with Google</h3>
+        <p class="text-[var(--text-muted)] text-sm leading-relaxed">
           Click "Continue with Google" on the landing page.
           We create your personal library automatically — no passwords, no setup.
         </p>
@@ -28,8 +28,8 @@
       <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold flex-shrink-0"
            style="background:linear-gradient(135deg,#6c63ff,#a78bfa);color:#fff;">2</div>
       <div>
-        <h3 class="font-semibold text-white mb-1">Write a prompt</h3>
-        <p class="text-slate-500 text-sm leading-relaxed">
+        <h3 class="font-semibold text-[var(--text)] mb-1">Write a prompt</h3>
+        <p class="text-[var(--text-muted)] text-sm leading-relaxed">
           Go to <a href="/generate/" class="text-[#6c63ff] hover:underline">Generate</a> and describe your track.
           The more detail you give — mood, instruments, energy, theme — the better the result.
         </p>
@@ -48,8 +48,8 @@
       <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold flex-shrink-0"
            style="background:linear-gradient(135deg,#6c63ff,#a78bfa);color:#fff;">3</div>
       <div>
-        <h3 class="font-semibold text-white mb-1">Wait for generation</h3>
-        <p class="text-slate-500 text-sm leading-relaxed">
+        <h3 class="font-semibold text-[var(--text)] mb-1">Wait for generation</h3>
+        <p class="text-[var(--text-muted)] text-sm leading-relaxed">
           In <strong class="text-slate-300">mock mode</strong> (default), results are instant.
           With the real <strong class="text-slate-300">Suno API</strong>, it typically takes 20–60 seconds.
           The page polls automatically — you don't need to refresh.
@@ -61,8 +61,8 @@
       <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold flex-shrink-0"
            style="background:linear-gradient(135deg,#6c63ff,#a78bfa);color:#fff;">4</div>
       <div>
-        <h3 class="font-semibold text-white mb-1">Play, share, or regenerate</h3>
-        <p class="text-slate-500 text-sm leading-relaxed">
+        <h3 class="font-semibold text-[var(--text)] mb-1">Play, share, or regenerate</h3>
+        <p class="text-[var(--text-muted)] text-sm leading-relaxed">
           Your song is saved to your library. Open it to listen, share publicly with a unique link,
           or regenerate with a tweaked prompt.
         </p>
@@ -71,74 +71,6 @@
 
   </div>
 
-  <!-- ── Strategy Pattern ── -->
-  <div class="card p-6 rounded-2xl mb-8">
-    <h2 class="text-lg font-bold text-white mb-4">⚙️ Under the Hood: Strategy Pattern</h2>
-    <p class="text-slate-400 text-sm leading-relaxed mb-4">
-      SongGen uses the <strong class="text-slate-200">Strategy design pattern</strong> to swap AI providers
-      without changing any other code. Two strategies are available:
-    </p>
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-      <div class="p-4 rounded-xl" style="background:#0f0f0f;border:1px solid #2a2a3e;">
-        <p class="font-medium text-white text-sm mb-1">🔧 Mock Strategy</p>
-        <p class="text-slate-500 text-xs">Instant offline generation. No API key needed. Perfect for development and testing.</p>
-        <code class="text-xs text-[#6c63ff] mt-2 block">GENERATOR_STRATEGY=mock</code>
-      </div>
-      <div class="p-4 rounded-xl" style="background:#0f0f0f;border:1px solid #2a2a3e;">
-        <p class="font-medium text-white text-sm mb-1">🎵 Suno Strategy</p>
-        <p class="text-slate-500 text-xs">Real AI generation via the Suno API. Requires an API key from sunoapi.org.</p>
-        <code class="text-xs text-[#6c63ff] mt-2 block">GENERATOR_STRATEGY=suno</code>
-      </div>
-    </div>
-    <p class="text-slate-600 text-xs mt-4">Switch strategies by changing one line in your <code class="text-slate-400">.env</code> file.</p>
-  </div>
-
-  <!-- ── API reference ── -->
-  <div class="card p-6 rounded-2xl">
-    <h2 class="text-lg font-bold text-white mb-4">📡 API Endpoints</h2>
-    <div class="flex flex-col gap-2 text-xs font-mono">
-      {% for row in endpoints %}
-      {% endfor %}
-      <div class="flex gap-2 p-2 rounded-lg" style="background:#0f0f0f;">
-        <span class="text-green-400 w-12 flex-shrink-0">POST</span>
-        <span class="text-slate-300">/songs/generate/</span>
-        <span class="text-slate-600 ml-auto">Generate a song</span>
-      </div>
-      <div class="flex gap-2 p-2 rounded-lg" style="background:#0f0f0f;">
-        <span class="text-blue-400 w-12 flex-shrink-0">GET</span>
-        <span class="text-slate-300">/songs/&lt;id&gt;/status/</span>
-        <span class="text-slate-600 ml-auto">Poll status</span>
-      </div>
-      <div class="flex gap-2 p-2 rounded-lg" style="background:#0f0f0f;">
-        <span class="text-green-400 w-12 flex-shrink-0">POST</span>
-        <span class="text-slate-300">/songs/&lt;id&gt;/regenerate/</span>
-        <span class="text-slate-600 ml-auto">Regenerate</span>
-      </div>
-      <div class="flex gap-2 p-2 rounded-lg" style="background:#0f0f0f;">
-        <span class="text-green-400 w-12 flex-shrink-0">POST</span>
-        <span class="text-slate-300">/songs/&lt;id&gt;/visibility/</span>
-        <span class="text-slate-600 ml-auto">Toggle public/private</span>
-      </div>
-      <div class="flex gap-2 p-2 rounded-lg" style="background:#0f0f0f;">
-        <span class="text-blue-400 w-12 flex-shrink-0">GET</span>
-        <span class="text-slate-300">/songs/public/&lt;token&gt;/</span>
-        <span class="text-slate-600 ml-auto">Public playback (no auth)</span>
-      </div>
-      <div class="flex gap-2 p-2 rounded-lg" style="background:#0f0f0f;">
-        <span class="text-blue-400 w-12 flex-shrink-0">GET</span>
-        <span class="text-slate-300">/songs/admin/metrics/</span>
-        <span class="text-slate-600 ml-auto">Usage metrics</span>
-      </div>
-      <div class="flex gap-2 p-2 rounded-lg" style="background:#0f0f0f;">
-        <span class="text-blue-400 w-12 flex-shrink-0">GET</span>
-        <span class="text-slate-300">/songs/prompts/</span>
-        <span class="text-slate-600 ml-auto">Example prompts</span>
-      </div>
-    </div>
-    <p class="text-slate-600 text-xs mt-4">
-      Full documentation in the project README.
-    </p>
-  </div>
 
 </div>
 {% endblock %}

@@ -8,21 +8,60 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Anti-FOUC: apply saved theme before any paint -->
+  <script>
+    (function() {
+      var t = localStorage.getItem('theme');
+      if (t === 'light') document.documentElement.setAttribute('data-theme', 'light');
+    })();
+  </script>
+
   <style>
+    /* ── CSS custom properties ── */
+    :root {
+      /* Dark mode: consistent dark-green theme */
+      --bg-page:    #0b0f0b;
+      --bg-card:    #131f14;
+      --bg-card2:   #0d160e;
+      --bg-input:   #0d160e;
+      --bg-nav:     rgba(11,15,11,0.88);
+      --border:     #1d2e1f;
+      --text:       #e2e8f0;
+      --text-muted: #94a3b8;
+      --text-dim:   #475569;
+      --text-dimmer:#334155;
+      --sb-track:   #131f14;
+    }
+    [data-theme="light"] {
+      --bg-page:    #f8fafc;
+      --bg-card:    #ffffff;
+      --bg-card2:   #f1f5f9;
+      --bg-input:   #f1f5f9;
+      --bg-nav:     rgba(248,250,252,0.92);
+      --border:     #e2e8f0;
+      --text:       #0f172a;
+      --text-muted: #64748b;
+      --text-dim:   #94a3b8;
+      --text-dimmer:#cbd5e1;
+      --sb-track:   #e2e8f0;
+    }
+
     *, *::before, *::after { font-family: 'Inter', sans-serif; box-sizing: border-box; }
-    html, body { background: #0f0f0f; color: #e2e8f0; margin: 0; padding: 0; }
+    html, body { background: var(--bg-page); color: var(--text); margin: 0; padding: 0; transition: background 0.25s, color 0.25s; }
 
     /* ── Scrollbar ── */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #1a1a2e; }
+    ::-webkit-scrollbar-track { background: var(--sb-track); }
     ::-webkit-scrollbar-thumb { background: #6c63ff; border-radius: 3px; }
 
     /* ── Nav glass ── */
     .nav-glass {
-      background: rgba(15, 15, 15, 0.85);
+      background: var(--bg-nav);
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
-      border-bottom: 1px solid #2a2a3e;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.25s, border-color 0.25s;
     }
 
     /* ── Gradient text ── */
@@ -35,12 +74,13 @@
 
     /* ── Card ── */
     .card {
-      background: #1a1a2e;
-      border: 1px solid #2a2a3e;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
       border-radius: 1rem;
+      transition: background 0.25s, border-color 0.25s;
     }
     .card-hover {
-      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background 0.25s;
     }
     .card-hover:hover {
       transform: translateY(-3px);
@@ -62,14 +102,14 @@
     }
     .btn-primary:active { transform: scale(0.97); }
     .btn-secondary {
-      background: #1a1a2e;
-      color: #e2e8f0;
-      border: 1px solid #2a2a3e;
+      background: var(--bg-card);
+      color: var(--text);
+      border: 1px solid var(--border);
       border-radius: 0.75rem;
       font-weight: 500;
       transition: background 0.2s, border-color 0.2s;
     }
-    .btn-secondary:hover { background: #22224a; border-color: #6c63ff; }
+    .btn-secondary:hover { background: var(--bg-card2); border-color: #6c63ff; }
     .btn-danger {
       background: #450a0a;
       color: #fca5a5;
@@ -82,12 +122,12 @@
 
     /* ── Inputs ── */
     .input-field {
-      background: #0f0f0f;
-      border: 1px solid #2a2a3e;
-      color: #e2e8f0;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      color: var(--text);
       border-radius: 0.75rem;
       padding: 0.625rem 1rem;
-      transition: border-color 0.2s, box-shadow 0.2s;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.25s;
       width: 100%;
       font-size: 0.9rem;
     }
@@ -96,7 +136,7 @@
       border-color: #6c63ff;
       box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.15);
     }
-    .input-field::placeholder { color: #475569; }
+    .input-field::placeholder { color: var(--text-dim); }
 
     /* ── Status badges ── */
     .badge { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.2rem 0.65rem; border-radius: 999px; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.04em; }
@@ -113,9 +153,115 @@
     .genre-CLASSICAL { background: #0c4a6e; color: #7dd3fc; border: 1px solid #0284c7; }
     .genre-ROMANCE   { background: #4a044e; color: #f0abfc; border: 1px solid #a21caf; }
 
+    /* ── Inset boxes (nested within cards) ── */
+    .inset-box {
+      background: var(--bg-card2);
+      border: 1px solid var(--border);
+      transition: background 0.25s, border-color 0.25s;
+    }
+
+    /* ── Toggle/checkbox track ── */
+    .toggle-track { background: var(--border); transition: background 0.2s; }
+
+    /* ── Nav links ── */
+    .nav-link {
+      display: inline-flex; align-items: center;
+      padding: 0.5rem 1rem; border-radius: 0.5rem;
+      font-size: 0.875rem; font-weight: 500;
+      transition: color 0.15s, background 0.15s;
+      color: var(--text-muted); text-decoration: none;
+    }
+    .nav-link:hover  { color: var(--text); background: var(--bg-card2); }
+    .nav-link.active { color: var(--text); background: var(--bg-card); font-weight: 600; }
+
     /* ── Audio player ── */
-    audio { width: 100%; height: 36px; border-radius: 0.5rem; }
-    audio::-webkit-media-controls-panel { background: #0f0f0f; border-radius: 0.5rem; }
+    audio {
+      width: 100%; height: 36px; border-radius: 0.5rem; accent-color: #6c63ff;
+      color-scheme: dark; flex-shrink: 0; overflow: clip;
+    }
+    [data-theme="light"] audio { color-scheme: light; }
+    audio::-webkit-media-controls-panel { background: var(--bg-card2); border-radius: 0.5rem; }
+    /* Remove native volume/mute from all audio — song cards have no vol control,
+       full-page players (detail, share) use the custom vertical slider below */
+    audio::-webkit-media-controls-volume-slider-container,
+    audio::-webkit-media-controls-volume-slider,
+    audio::-webkit-media-controls-mute-button { display: none; }
+    /* Time display */
+    audio::-webkit-media-controls-current-time-display,
+    audio::-webkit-media-controls-time-remaining-display { color: #ffffff; }
+    [data-theme="light"] audio::-webkit-media-controls-current-time-display,
+    [data-theme="light"] audio::-webkit-media-controls-time-remaining-display { color: #0f172a; }
+
+    /* ── Custom vertical volume control ── */
+    .vol-wrap { display: flex; align-items: center; gap: 6px; }
+    .vol-ctrl { position: relative; flex-shrink: 0; }
+    .vol-btn {
+      width: 28px; height: 28px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 6px; border: 1px solid var(--border);
+      background: var(--bg-card2); cursor: pointer;
+      font-size: 13px; line-height: 1;
+      transition: background 0.15s, border-color 0.15s;
+      padding: 0;
+    }
+    .vol-btn:hover { background: var(--bg-card); border-color: #6c63ff; }
+    .vol-panel {
+      display: none;
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%; transform: translateX(-50%);
+      flex-direction: column; align-items: center;
+      padding: 10px 8px;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 10px;
+      box-shadow: 0 8px 28px rgba(0,0,0,0.5);
+      z-index: 200;
+    }
+    .vol-panel.vol-open {
+      display: flex;
+      animation: volAppear 0.14s ease;
+    }
+    @keyframes volAppear {
+      from { opacity: 0; transform: translateX(-50%) translateY(6px); }
+      to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+    /* Vertical range: writing-mode rotates the slider; direction:rtl puts 0 at
+       bottom so dragging UP increases volume.
+       Physical width = horizontal extent (thickness); height = vertical travel.  */
+    .vol-range {
+      writing-mode: vertical-lr;
+      direction: rtl;
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 80px;
+      background: transparent;
+      cursor: pointer;
+      padding: 0; margin: 0;
+    }
+    .vol-range::-webkit-slider-runnable-track {
+      width: 4px; border-radius: 2px;
+      background: rgba(255,255,255,0.22);
+    }
+    .vol-range::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px; height: 14px; border-radius: 50%;
+      background: #6c63ff; cursor: grab;
+      box-shadow: 0 0 0 3px rgba(108,99,255,0.35);
+      margin-left: -5px; /* center 14px thumb on 4px track */
+    }
+    .vol-range:active::-webkit-slider-thumb { cursor: grabbing; }
+    .vol-range::-moz-range-track {
+      width: 4px; border-radius: 2px;
+      background: rgba(255,255,255,0.22);
+    }
+    .vol-range::-moz-range-thumb {
+      width: 14px; height: 14px; border-radius: 50%;
+      background: #6c63ff; border: none; cursor: grab;
+      box-shadow: 0 0 0 3px rgba(108,99,255,0.35);
+    }
+    [data-theme="light"] .vol-range::-webkit-slider-runnable-track { background: rgba(0,0,0,0.18); }
+    [data-theme="light"] .vol-range::-moz-range-track               { background: rgba(0,0,0,0.18); }
 
     /* ── Toast notifications ── */
     #toast-container { position: fixed; top: 1.5rem; right: 1.5rem; z-index: 9999; display: flex; flex-direction: column; gap: 0.5rem; pointer-events: none; }
@@ -131,7 +277,7 @@
 
     /* ── Spinner ── */
     @keyframes spin { to { transform: rotate(360deg); } }
-    .spinner { display: inline-block; width: 1.2rem; height: 1.2rem; border: 2px solid #2a2a3e; border-top-color: #6c63ff; border-radius: 50%; animation: spin 0.7s linear infinite; }
+    .spinner { display: inline-block; width: 1.2rem; height: 1.2rem; border: 2px solid var(--border); border-top-color: #6c63ff; border-radius: 50%; animation: spin 0.7s linear infinite; }
 
     /* ── Progress bar animation ── */
     @keyframes progress-indeterminate {
@@ -147,6 +293,20 @@
 
     /* ── Glow on primary elements ── */
     .glow-primary { box-shadow: 0 0 20px rgba(108, 99, 255, 0.35); }
+
+    /* ── Theme toggle button ── */
+    .theme-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      padding: 0.3rem 0.55rem;
+      cursor: pointer;
+      font-size: 1rem;
+      line-height: 1;
+      transition: border-color 0.2s, background 0.2s;
+      color: var(--text-muted);
+    }
+    .theme-btn:hover { border-color: #6c63ff; background: var(--bg-card); }
   </style>
 </head>
 <body>
@@ -160,30 +320,30 @@
     </a>
 
     <div class="flex items-center gap-1">
-      <a href="/library/"
-         class="px-4 py-2 rounded-lg text-sm font-medium transition-colors {% if request.resolver_match.url_name == 'library' %}text-white bg-[#1a1a2e]{% else %}text-slate-400 hover:text-white hover:bg-[#1a1a2e]{% endif %}">
-        Library
-      </a>
-      <a href="/generate/"
-         class="px-4 py-2 rounded-lg text-sm font-medium transition-colors {% if request.resolver_match.url_name == 'generate' %}text-white bg-[#1a1a2e]{% else %}text-slate-400 hover:text-white hover:bg-[#1a1a2e]{% endif %}">
-        Generate
-      </a>
-      <a href="/how-to/"
-         class="px-4 py-2 rounded-lg text-sm font-medium transition-colors {% if request.resolver_match.url_name == 'how_to' %}text-white bg-[#1a1a2e]{% else %}text-slate-400 hover:text-white hover:bg-[#1a1a2e]{% endif %}">
-        How To
-      </a>
+      <a href="/library/" class="nav-link {% if request.resolver_match.url_name == 'library' %}active{% endif %}">Library</a>
+      <a href="/generate/" class="nav-link {% if request.resolver_match.url_name == 'generate' %}active{% endif %}">Generate</a>
+      <a href="/how-to/" class="nav-link {% if request.resolver_match.url_name == 'how_to' %}active{% endif %}">How To</a>
+      {% if songs_user and songs_user.is_admin %}
+      <a href="/admin-dashboard/" class="nav-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">⚙ Admin</a>
+      {% endif %}
     </div>
 
     <div class="flex items-center gap-3">
-      <div class="flex items-center gap-2 px-3 py-1.5 rounded-full" style="background:#1a1a2e;border:1px solid #2a2a3e;">
+      <!-- Theme toggle -->
+      <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle theme" aria-label="Toggle light/dark theme">
+        🌙
+      </button>
+
+      <div class="flex items-center gap-2 px-3 py-1.5 rounded-full" style="background:var(--bg-card);border:1px solid var(--border);">
         <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
              style="background: linear-gradient(135deg,#6c63ff,#a78bfa);">
           {{ request.user.email|slice:":1"|upper }}
         </div>
-        <span class="text-sm text-slate-300 max-w-[140px] truncate">{{ request.user.email }}</span>
+        <span class="text-sm max-w-[140px] truncate" style="color:var(--text-muted);">{{ request.user.email }}</span>
       </div>
       <a href="/accounts/logout/"
-         class="text-sm text-slate-500 hover:text-red-400 transition-colors px-2 py-1 rounded">
+         class="text-sm transition-colors px-2 py-1 rounded" style="color:var(--text-dim);"
+         onmouseover="this.style.color='#f87171'" onmouseout="this.style.color='var(--text-dim)'">
         Logout
       </a>
     </div>
@@ -198,44 +358,238 @@
 <div id="toast-container"></div>
 
 <script>
-function showToast(message, type = 'info') {
-  const container = document.getElementById('toast-container');
-  const toast = document.createElement('div');
-  toast.className = `toast toast-${type}`;
-  toast.textContent = message;
-  container.appendChild(toast);
-  requestAnimationFrame(() => requestAnimationFrame(() => toast.classList.add('show')));
-  setTimeout(() => {
-    toast.classList.remove('show');
-    setTimeout(() => toast.remove(), 350);
-  }, 4000);
+/* ── Theme ── */
+(function() {
+  var t = localStorage.getItem('theme') || 'dark';
+  applyTheme(t);
+})();
+
+function applyTheme(t) {
+  if (t === 'light') {
+    document.documentElement.setAttribute('data-theme', 'light');
+  } else {
+    document.documentElement.removeAttribute('data-theme');
+  }
+  var btn = document.getElementById('theme-btn');
+  if (btn) btn.textContent = t === 'light' ? '☀️' : '🌙';
 }
 
-async function deleteSong(songId, redirectTo = '/library/') {
+function toggleTheme() {
+  var current = localStorage.getItem('theme') || 'dark';
+  var next = current === 'dark' ? 'light' : 'dark';
+  localStorage.setItem('theme', next);
+  applyTheme(next);
+}
+
+/* ── Toast ── */
+function showToast(message, type, linkHref, linkLabel) {
+  var container = document.getElementById('toast-container');
+  var toast = document.createElement('div');
+  toast.className = 'toast toast-' + (type || 'info');
+  if (linkHref) {
+    toast.innerHTML = message + ' <a href="' + linkHref + '" style="text-decoration:underline;margin-left:6px;">' + (linkLabel || 'Open') + '</a>';
+  } else {
+    toast.textContent = message;
+  }
+  container.appendChild(toast);
+  requestAnimationFrame(function() { requestAnimationFrame(function() { toast.classList.add('show'); }); });
+  setTimeout(function() {
+    toast.classList.remove('show');
+    setTimeout(function() { toast.remove(); }, 350);
+  }, 5000);
+}
+
+/* ── Delete helper ── */
+async function deleteSong(songId, redirectTo) {
+  redirectTo = redirectTo || '/library/';
   if (!confirm('Delete this song? This cannot be undone.')) return;
   try {
-    const res = await fetch(`/songs/${songId}/delete/`, { method: 'DELETE' });
+    var res = await fetch('/songs/' + songId + '/delete/', { method: 'DELETE' });
     if (res.ok) {
       showToast('Song deleted.', 'success');
-      setTimeout(() => { window.location.href = redirectTo; }, 800);
+      setTimeout(function() { window.location.href = redirectTo; }, 800);
     } else {
       showToast('Failed to delete.', 'error');
     }
-  } catch {
+  } catch(e) {
     showToast('Network error.', 'error');
   }
 }
 
 function statusBadgeHtml(status) {
-  const map = {
+  var map = {
     SUCCESS:       '<span class="badge badge-success">✓ Ready</span>',
     PENDING:       '<span class="badge badge-pending pulse-dot">⏳ Generating</span>',
     FAILED:        '<span class="badge badge-failed">✗ Failed</span>',
     TEXT_SUCCESS:  '<span class="badge badge-pending">Lyrics ready</span>',
     FIRST_SUCCESS: '<span class="badge badge-pending">Almost done</span>',
   };
-  return map[status] || `<span class="badge badge-default">${status}</span>`;
+  return map[status] || '<span class="badge badge-default">' + status + '</span>';
 }
+
+{% if request.user.is_authenticated %}
+/* ── Global cross-page generation notifications (FR-09) ──
+   Page-level pollers (e.g. library.html) can suppress duplicate toasts
+   by adding song IDs to window.__sgPageHandled before this poller fires.
+*/
+window.__sgPageHandled = window.__sgPageHandled || new Set();
+
+(function() {
+  var POLL_MS = 8000;
+  var known = {};
+  try { known = JSON.parse(sessionStorage.getItem('_sg_known') || '{}'); } catch(e) {}
+
+  async function poll() {
+    try {
+      var res = await fetch('/songs/pending/');
+      if (!res.ok) return;
+      var data = await res.json();
+      var songs = data.songs || [];
+
+      var pendingNow = {};
+      songs.forEach(function(s) { pendingNow[s.song_id] = s.status; });
+
+      // Songs that were pending before but are gone now — check if they finished.
+      // Skip any that the page-level poller already handled to avoid duplicate toasts.
+      var toCheck = Object.keys(known).filter(function(id) {
+        return !pendingNow[id] && !window.__sgPageHandled.has(id);
+      });
+
+      toCheck.forEach(async function(id) {
+        try {
+          var sr = await fetch('/songs/' + id + '/status/');
+          if (!sr.ok) return;
+          var sd = await sr.json();
+          if (sd.status === 'SUCCESS') {
+            showToast('✓ "' + (sd.title || 'Song') + '" is ready!', 'success', '/song/' + id + '/', 'Open');
+          } else if (sd.status === 'FAILED') {
+            showToast('✗ Generation failed for "' + (sd.title || 'Song') + '"', 'error');
+          }
+          delete known[id];
+        } catch(e) {}
+      });
+
+      songs.forEach(function(s) { known[s.song_id] = s.status; });
+      try { sessionStorage.setItem('_sg_known', JSON.stringify(known)); } catch(e) {}
+    } catch(e) {}
+    setTimeout(poll, POLL_MS);
+  }
+
+  setTimeout(poll, POLL_MS);
+})();
+{% endif %}
+</script>
+
+<script>
+/* ── Custom vertical volume slider ── */
+(function() {
+  function volIcon(audio) {
+    if (audio.muted || audio.volume === 0) return '🔇';
+    if (audio.volume < 0.5) return '🔉';
+    return '🔊';
+  }
+
+  function initAudioVolume(audio) {
+    if (audio.dataset.volInit) return;
+    audio.dataset.volInit = '1';
+
+    // Compact song cards: no custom vol control — native audio is sufficient
+    if (audio.closest('.song-card')) return;
+
+    var wrap = document.createElement('div');
+    wrap.className = 'vol-wrap';
+    audio.parentNode.insertBefore(wrap, audio);
+    wrap.appendChild(audio);
+    audio.style.flex = '1';
+    audio.style.minWidth = '0';
+
+    var ctrl = document.createElement('div');
+    ctrl.className = 'vol-ctrl';
+
+    var btn = document.createElement('button');
+    btn.className = 'vol-btn';
+    btn.type = 'button';
+    btn.title = 'Volume';
+    btn.textContent = volIcon(audio);
+
+    var panel = document.createElement('div');
+    panel.className = 'vol-panel';
+
+    var range = document.createElement('input');
+    range.type = 'range';
+    range.className = 'vol-range';
+    range.min = '0';
+    range.max = '1';
+    range.step = '0.01';
+    range.value = String(audio.muted ? 0 : audio.volume);
+
+    panel.appendChild(range);
+    ctrl.appendChild(btn);
+    ctrl.appendChild(panel);
+    wrap.appendChild(ctrl);
+
+    var hideTimer = null;
+    function scheduleHide() {
+      hideTimer = setTimeout(function() { panel.classList.remove('vol-open'); }, 180);
+    }
+    function cancelHide() {
+      if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+    }
+
+    btn.addEventListener('mouseenter', function() { cancelHide(); panel.classList.add('vol-open'); });
+    btn.addEventListener('mouseleave', scheduleHide);
+    panel.addEventListener('mouseenter', cancelHide);
+    panel.addEventListener('mouseleave', scheduleHide);
+
+    btn.addEventListener('click', function() {
+      audio.muted = !audio.muted;
+      btn.textContent = volIcon(audio);
+      range.value = String(audio.muted ? 0 : audio.volume);
+    });
+
+    range.addEventListener('input', function() {
+      var v = parseFloat(range.value);
+      audio.volume = v;
+      audio.muted = (v === 0);
+      btn.textContent = volIcon(audio);
+    });
+
+    audio.addEventListener('volumechange', function() {
+      btn.textContent = volIcon(audio);
+      range.value = String(audio.muted ? 0 : audio.volume);
+    });
+  }
+
+  function initAll() {
+    document.querySelectorAll('audio[controls]').forEach(initAudioVolume);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAll);
+  } else {
+    initAll();
+  }
+
+  var _volObserver = new MutationObserver(function(mutations) {
+    mutations.forEach(function(m) {
+      m.addedNodes.forEach(function(node) {
+        if (node.nodeType !== 1) return;
+        if (node.matches && node.matches('audio[controls]')) initAudioVolume(node);
+        if (node.querySelectorAll) node.querySelectorAll('audio[controls]').forEach(initAudioVolume);
+      });
+    });
+  });
+
+  function startObserver() {
+    _volObserver.observe(document.body, { childList: true, subtree: true });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', startObserver);
+  } else {
+    startObserver();
+  }
+})();
 </script>
 
 {% block scripts %}{% endblock %}

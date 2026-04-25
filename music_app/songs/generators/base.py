@@ -12,6 +12,7 @@ class GenerationRequest:
     vocal_style: Optional[str] = None
     lyrics: Optional[str] = None
     instrumental: bool = False
+    duration: Optional[int] = None
 
 
 @dataclass

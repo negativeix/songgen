@@ -10,6 +10,11 @@ urlpatterns = [
     path('<uuid:song_id>/visibility/', views.song_visibility),
     path('public/<uuid:token>/', views.song_public),
     path('admin/metrics/', views.admin_metrics),
+    path('admin/config/', views.admin_config_update),
+    path('admin/tokens/<uuid:song_id>/regenerate/', views.admin_token_regenerate),
+    path('admin/tokens/<uuid:song_id>/revoke/', views.admin_token_revoke),
+    path('pending/', views.song_pending_list),
+    path('<uuid:song_id>/download/', views.song_download),
     path('prompts/', views.prompt_suggestions),
 
     # ── Song CRUD (Exercise 3) ───────────────────────────────────────────────
@@ -29,4 +34,9 @@ urlpatterns = [
     path('folders/create/', views.folder_create),
     path('folders/<uuid:folder_id>/update/', views.folder_update),
     path('folders/<uuid:folder_id>/delete/', views.folder_delete),
+
+    # ── Folder song assignment ────────────────────────────────────────────────
+    path('folders/songs/move/', views.folder_move_song),
+    path('folders/<uuid:folder_id>/songs/add/', views.folder_add_song),
+    path('folders/<uuid:folder_id>/songs/remove/', views.folder_remove_song),
 ]

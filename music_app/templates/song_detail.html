@@ -5,7 +5,9 @@
 <div class="max-w-3xl mx-auto px-6 py-10">
 
   <!-- ── Back link ── -->
-  <a href="/library/" class="inline-flex items-center gap-2 text-slate-500 hover:text-white text-sm mb-6 transition-colors">
+  <a href="/library/" class="inline-flex items-center gap-2 text-sm mb-6 transition-colors"
+     style="color:var(--text-muted);"
+     onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text-muted)'">
     ← Back to Library
   </a>
 
@@ -25,12 +27,12 @@
             <span class="badge badge-pending pulse-dot" id="status-badge">⏳ Generating</span>
           {% endif %}
           {% if song.visibility == 'PUBLIC' %}
-          <span class="badge" style="background:#1e3a2a;color:#6ee7b7;border:1px solid #22c55e;">🌐 Public</span>
+          <span class="badge badge-public">🌐 Public</span>
           {% endif %}
         </div>
-        <h1 class="text-2xl font-bold text-white truncate" id="song-title">{{ song.title }}</h1>
+        <h1 class="text-2xl font-bold truncate" style="color:var(--text);" id="song-title">{{ song.title }}</h1>
         {% if song.artist %}
-        <p class="text-slate-400 text-sm mt-1">{{ song.artist }}</p>
+        <p class="text-sm mt-1" style="color:var(--text-muted);">{{ song.artist }}</p>
         {% endif %}
       </div>
 
@@ -59,37 +61,36 @@
       </audio>
     </div>
     {% elif song.status != 'FAILED' %}
-    <div id="audio-wrap" class="mb-5 p-4 rounded-xl flex items-center gap-3"
-         style="background:#0f0f0f;border:1px solid #2a2a3e;">
+    <div id="audio-wrap" class="inset-box mb-5 p-4 rounded-xl flex items-center gap-3">
       <div class="spinner"></div>
-      <p class="text-slate-400 text-sm" id="status-text">Generating audio… check back shortly.</p>
+      <p class="text-sm" style="color:var(--text-muted);" id="status-text">Generating audio… check back shortly.</p>
     </div>
     {% endif %}
 
-    <!-- Meta row -->
+    <!-- Meta row — all boxes use .inset-box so they adapt to light/dark -->
     <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
       {% if song.mood %}
-      <div class="p-3 rounded-xl" style="background:#0f0f0f;border:1px solid #2a2a3e;">
-        <p class="text-slate-600 text-xs mb-0.5">Mood</p>
-        <p class="text-slate-200 font-medium">{{ song.mood }}</p>
+      <div class="inset-box p-3 rounded-xl">
+        <p class="text-xs mb-0.5" style="color:var(--text-dim);">Mood</p>
+        <p class="font-medium" style="color:var(--text);">{{ song.mood }}</p>
       </div>
       {% endif %}
       {% if song.vocal_style %}
-      <div class="p-3 rounded-xl" style="background:#0f0f0f;border:1px solid #2a2a3e;">
-        <p class="text-slate-600 text-xs mb-0.5">Vocals</p>
-        <p class="text-slate-200 font-medium">{{ song.vocal_style }}</p>
+      <div class="inset-box p-3 rounded-xl">
+        <p class="text-xs mb-0.5" style="color:var(--text-dim);">Vocals</p>
+        <p class="font-medium" style="color:var(--text);">{{ song.vocal_style }}</p>
       </div>
       {% endif %}
       {% if song.duration %}
-      <div class="p-3 rounded-xl" style="background:#0f0f0f;border:1px solid #2a2a3e;">
-        <p class="text-slate-600 text-xs mb-0.5">Duration</p>
-        <p class="text-slate-200 font-medium">{{ song.duration }}s</p>
+      <div class="inset-box p-3 rounded-xl">
+        <p class="text-xs mb-0.5" style="color:var(--text-dim);">Duration</p>
+        <p class="font-medium" style="color:var(--text);">{{ song.duration }}s</p>
       </div>
       {% endif %}
       {% if song.created_at %}
-      <div class="p-3 rounded-xl" style="background:#0f0f0f;border:1px solid #2a2a3e;">
-        <p class="text-slate-600 text-xs mb-0.5">Created</p>
-        <p class="text-slate-200 font-medium">{{ song.created_at|date:"M j, Y" }}</p>
+      <div class="inset-box p-3 rounded-xl">
+        <p class="text-xs mb-0.5" style="color:var(--text-dim);">Created</p>
+        <p class="font-medium" style="color:var(--text);">{{ song.created_at|date:"M j, Y" }}</p>
       </div>
       {% endif %}
     </div>
@@ -98,16 +99,16 @@
   <!-- ── Prompt ── -->
   {% if song.prompt %}
   <div class="card p-5 rounded-2xl mb-5">
-    <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-2">Prompt</h3>
-    <p class="text-slate-300 text-sm leading-relaxed">{{ song.prompt }}</p>
+    <h3 class="text-xs font-semibold uppercase tracking-widest mb-2" style="color:var(--text-muted);">Prompt</h3>
+    <p class="text-sm leading-relaxed" style="color:var(--text-muted);">{{ song.prompt }}</p>
   </div>
   {% endif %}
 
   <!-- ── Lyrics ── -->
   {% if song.lyrics %}
   <div class="card p-5 rounded-2xl mb-5">
-    <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-2">Lyrics</h3>
-    <pre class="text-slate-300 text-sm leading-loose whitespace-pre-wrap font-sans">{{ song.lyrics }}</pre>
+    <h3 class="text-xs font-semibold uppercase tracking-widest mb-2" style="color:var(--text-muted);">Lyrics</h3>
+    <pre class="text-sm leading-loose whitespace-pre-wrap font-sans" style="color:var(--text-muted);">{{ song.lyrics }}</pre>
   </div>
   {% endif %}
 
@@ -124,17 +125,25 @@
     {% if song.visibility == 'PUBLIC' and song.public_token %}
     <div id="public-link-wrap" class="flex items-center gap-2 card px-3 py-2 rounded-xl">
       <input type="text" readonly value="{{ request.scheme }}://{{ request.get_host }}/share/{{ song.public_token }}/"
-             id="public-link" class="bg-transparent text-slate-400 text-xs w-56 focus:outline-none">
+             id="public-link" class="bg-transparent text-xs w-56 focus:outline-none" style="color:var(--text-muted);">
       <button onclick="copyLink()" class="text-xs text-[#6c63ff] hover:text-white font-medium transition-colors">Copy</button>
     </div>
     {% else %}
     <div id="public-link-wrap" class="hidden flex items-center gap-2 card px-3 py-2 rounded-xl">
-      <input type="text" readonly id="public-link" class="bg-transparent text-slate-400 text-xs w-56 focus:outline-none">
+      <input type="text" readonly id="public-link" class="bg-transparent text-xs w-56 focus:outline-none" style="color:var(--text-muted);">
       <button onclick="copyLink()" class="text-xs text-[#6c63ff] hover:text-white font-medium transition-colors">Copy</button>
     </div>
     {% endif %}
 
-    <!-- Regenerate → opens generate form prefilled with this song's values -->
+    <!-- Download -->
+    {% if song.audio_url %}
+    <a href="/songs/{{ song.songId }}/download/"
+       class="btn-secondary px-4 py-2.5 text-sm flex items-center gap-2">
+      ⬇ Download
+    </a>
+    {% endif %}
+
+    <!-- Regenerate -->
     <a href="/generate/?from={{ song.songId }}"
        class="btn-secondary px-4 py-2.5 text-sm flex items-center gap-2">
       🔄 Regenerate
@@ -154,7 +163,6 @@
 <script>
 const SONG_ID = '{{ song.songId }}';
 
-// Poll if song is still pending
 {% if song.status != 'SUCCESS' and song.status != 'FAILED' %}
 pollStatus();
 
@@ -165,14 +173,16 @@ async function pollStatus() {
     const data = await res.json();
 
     if (data.status === 'SUCCESS') {
-      document.getElementById('status-badge') && (document.getElementById('status-badge').outerHTML = '<span class="badge badge-success">✓ Ready</span>');
+      const badge = document.getElementById('status-badge');
+      if (badge) badge.outerHTML = '<span class="badge badge-success">✓ Ready</span>';
       const wrap = document.getElementById('audio-wrap');
       if (wrap && data.audio_url) {
         wrap.innerHTML = `<audio controls autoplay class="w-full"><source src="${data.audio_url}" type="audio/mpeg"></audio>`;
       }
       showToast('Song is ready!', 'success');
     } else if (data.status === 'FAILED') {
-      document.getElementById('status-text') && (document.getElementById('status-text').textContent = 'Generation failed.');
+      const st = document.getElementById('status-text');
+      if (st) st.textContent = 'Generation failed.';
       showToast('Generation failed.', 'error');
     } else {
       pollStatus();
@@ -188,7 +198,7 @@ async function toggleVisibility() {
     const res  = await fetch(`/songs/${SONG_ID}/visibility/`, { method: 'POST' });
     const data = await res.json();
     const btn  = document.getElementById('share-btn');
-    const linkWrap = document.getElementById('public-link-wrap');
+    const linkWrap  = document.getElementById('public-link-wrap');
     const linkInput = document.getElementById('public-link');
 
     if (data.visibility === 'PUBLIC') {
@@ -210,8 +220,8 @@ async function toggleVisibility() {
 }
 
 function copyLink() {
-  const val = document.getElementById('public-link').value;
-  navigator.clipboard.writeText(val).then(() => showToast('Link copied!', 'success'));
+  navigator.clipboard.writeText(document.getElementById('public-link').value)
+    .then(() => showToast('Link copied!', 'success'));
 }
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }

@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-6 py-10">
+
+  <div class="flex items-center justify-between mb-8">
+    <div>
+      <h1 class="text-3xl font-bold" style="color:var(--text);">Admin Dashboard</h1>
+      <p class="text-sm mt-1" style="color:var(--text-muted);">Usage metrics, runtime config, and shared link management</p>
+    </div>
+    <a href="/library/" class="text-sm transition-colors" style="color:var(--text-muted);">← Library</a>
+  </div>
+
+  <!-- ── Hero stats ─────────────────────────────────────────────────────── -->
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
+    <div class="card p-4 rounded-2xl text-center">
+      <p class="text-3xl font-bold" style="color:var(--text);">{{ total_songs }}</p>
+      <p class="text-xs mt-1" style="color:var(--text-muted);">Total Songs</p>
+    </div>
+    <div class="card p-4 rounded-2xl text-center">
+      <p class="text-3xl font-bold" style="color:var(--text);">{{ total_users }}</p>
+      <p class="text-xs mt-1" style="color:var(--text-muted);">Total Users</p>
+    </div>
+    <div class="card p-4 rounded-2xl text-center">
+      <p class="text-3xl font-bold text-green-400">{{ success_songs }}</p>
+      <p class="text-xs mt-1" style="color:var(--text-muted);">Successful</p>
+    </div>
+    <div class="card p-4 rounded-2xl text-center">
+      <p class="text-3xl font-bold" style="color:var(--text);">{{ songs_last_24h }}</p>
+      <p class="text-xs mt-1" style="color:var(--text-muted);">Last 24h</p>
+    </div>
+    <div class="card p-4 rounded-2xl text-center">
+      <p class="text-3xl font-bold" style="color:var(--text);">{{ public_songs_count }}</p>
+      <p class="text-xs mt-1" style="color:var(--text-muted);">Public Songs</p>
+    </div>
+  </div>
+
+  <!-- ── Runtime config (NFR-20) ───────────────────────────────────────── -->
+  <div class="card p-5 rounded-2xl mb-6">
+    <h2 class="text-base font-semibold mb-1" style="color:var(--text);">Runtime Configuration</h2>
+    <p class="text-xs mb-4" style="color:var(--text-dim);">Changes take effect immediately — no redeploy needed (NFR-20).</p>
+    <div class="flex items-center gap-3 flex-wrap">
+      <div>
+        <label class="text-xs font-medium block mb-1" style="color:var(--text-muted);">Max songs per user per day (0 = unlimited)</label>
+        <div class="flex items-center gap-2">
+          <input type="number" id="quota-input" value="{{ quota_limit }}" min="0" max="9999"
+                 class="input-field" style="width:100px;">
+          <button onclick="saveConfig('max_songs_per_day', document.getElementById('quota-input').value)"
+                  class="btn-primary px-4 py-2 text-sm">Save</button>
+        </div>
+      </div>
+      <div class="ml-4 pl-4" style="border-left:1px solid var(--border);">
+        <p class="text-xs" style="color:var(--text-dim);">Current limit:</p>
+        <p class="text-lg font-bold" style="color:var(--text);" id="quota-display">
+          {% if quota_limit == 0 %}Unlimited{% else %}{{ quota_limit }} / day{% endif %}
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Per-user breakdown ─────────────────────────────────────────────── -->
+  <div class="card p-5 rounded-2xl mb-6">
+    <h2 class="text-base font-semibold mb-4" style="color:var(--text);">Per-User Usage</h2>
+    {% if per_user %}
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-xs uppercase tracking-wider border-b" style="color:var(--text-dim);border-color:var(--border);">
+            <th class="text-left pb-3 pr-4">User</th>
+            <th class="text-center pb-3 px-4">Total</th>
+            <th class="text-center pb-3 px-4">Successful</th>
+            <th class="text-center pb-3 px-4">Last 24h</th>
+            <th class="text-center pb-3 pl-4">Role</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in per_user %}
+          <tr class="border-b" style="border-color:var(--border);">
+            <td class="py-3 pr-4">
+              <p class="font-medium" style="color:var(--text);">{{ row.user.username|default:row.user.email }}</p>
+              <p class="text-xs" style="color:var(--text-muted);">{{ row.user.email }}</p>
+            </td>
+            <td class="text-center py-3 px-4" style="color:var(--text-muted);">{{ row.total_songs }}</td>
+            <td class="text-center py-3 px-4 text-green-400">{{ row.success_count }}</td>
+            <td class="text-center py-3 px-4" style="color:var(--text-muted);">{{ row.last_24h }}</td>
+            <td class="text-center py-3 pl-4">
+              {% if row.user.is_admin %}
+              <span class="px-2 py-0.5 rounded text-xs font-semibold" style="background:#1e3a2a;color:#6ee7b7;">Admin</span>
+              {% else %}
+              <span class="text-xs" style="color:var(--text-dim);">User</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="text-sm" style="color:var(--text-dim);">No users yet.</p>
+    {% endif %}
+  </div>
+
+  <!-- ── AI Usage Audit Log (NFR-19) ───────────────────────────────────── -->
+  <div class="card p-5 rounded-2xl mb-6">
+    <h2 class="text-base font-semibold mb-1" style="color:var(--text);">AI Usage Audit Log</h2>
+    <p class="text-xs mb-4" style="color:var(--text-dim);">Most recent 50 events (NFR-19).</p>
+    {% if recent_audit %}
+    <div class="overflow-x-auto">
+      <table class="w-full text-xs">
+        <thead>
+          <tr class="uppercase tracking-wider border-b" style="color:var(--text-dim);border-color:var(--border);">
+            <th class="text-left pb-2 pr-3">Time</th>
+            <th class="text-left pb-2 pr-3">User</th>
+            <th class="text-left pb-2 pr-3">Action</th>
+            <th class="text-left pb-2 pr-3">Strategy</th>
+            <th class="text-left pb-2">Detail</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for entry in recent_audit %}
+          <tr class="border-b" style="border-color:var(--border);">
+            <td class="py-2 pr-3 whitespace-nowrap" style="color:var(--text-dim);">{{ entry.timestamp|date:"M j H:i" }}</td>
+            <td class="py-2 pr-3 truncate max-w-[140px]" style="color:var(--text-muted);">{{ entry.user_email }}</td>
+            <td class="py-2 pr-3">
+              {% if entry.action == 'generate_success' %}
+                <span class="text-green-400 font-medium">{{ entry.action }}</span>
+              {% elif entry.action == 'generate_failed' or entry.action == 'quota_exceeded' %}
+                <span class="text-red-400 font-medium">{{ entry.action }}</span>
+              {% elif entry.action == 'config_updated' %}
+                <span style="color:#a5b4fc;">{{ entry.action }}</span>
+              {% else %}
+                <span style="color:var(--text-muted);">{{ entry.action }}</span>
+              {% endif %}
+            </td>
+            <td class="py-2 pr-3" style="color:var(--text-dim);">{{ entry.strategy }}</td>
+            <td class="py-2 truncate max-w-[200px]" style="color:var(--text-dim);" title="{{ entry.detail }}">{{ entry.detail }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="text-sm" style="color:var(--text-dim);">No audit events yet. Generate a song to populate this log.</p>
+    {% endif %}
+  </div>
+
+  <!-- ── Public share token management ─────────────────────────────────── -->
+  <div class="card p-5 rounded-2xl">
+    <h2 class="text-base font-semibold mb-4" style="color:var(--text);">Public Shared Links</h2>
+    {% if public_songs %}
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-xs uppercase tracking-wider border-b" style="color:var(--text-dim);border-color:var(--border);">
+            <th class="text-left pb-3 pr-4">Song</th>
+            <th class="text-left pb-3 pr-4">Owner</th>
+            <th class="text-left pb-3 pr-4">Share Link</th>
+            <th class="text-right pb-3 pl-4">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for song in public_songs %}
+          <tr class="border-b" style="border-color:var(--border);" id="row-{{ song.songId }}">
+            <td class="py-3 pr-4">
+              <p class="font-medium" style="color:var(--text);">{{ song.title }}</p>
+              {% if song.genre %}<span class="text-xs" style="color:var(--text-muted);">{{ song.genre }}</span>{% endif %}
+            </td>
+            <td class="py-3 pr-4 text-xs" style="color:var(--text-muted);">{{ song.library.user.email }}</td>
+            <td class="py-3 pr-4">
+              <a href="/share/{{ song.public_token }}/" target="_blank"
+                 class="text-[#6c63ff] text-xs hover:text-white transition-colors truncate block max-w-xs">
+                /share/{{ song.public_token }}/
+              </a>
+            </td>
+            <td class="py-3 pl-4 text-right">
+              <div class="flex items-center justify-end gap-2">
+                <button onclick="regenerateToken('{{ song.songId }}')"
+                        class="text-xs px-3 py-1 rounded transition-colors"
+                        style="background:#1e1b4b;color:#a5b4fc;">
+                  Rotate Token
+                </button>
+                <button onclick="revokeToken('{{ song.songId }}')"
+                        class="text-xs px-3 py-1 rounded transition-colors"
+                        style="background:#450a0a;color:#fca5a5;">
+                  Revoke
+                </button>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="text-sm" style="color:var(--text-dim);">No public songs yet.</p>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function saveConfig(key, value) {
+  value = String(value).trim();
+  if (value === '' || isNaN(parseInt(value, 10))) {
+    showToast('Enter a valid number.', 'error'); return;
+  }
+  try {
+    const res = await fetch('/songs/admin/config/', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ key, value }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      const display = document.getElementById('quota-display');
+      if (display) {
+        display.textContent = parseInt(value, 10) === 0 ? 'Unlimited' : `${value} / day`;
+      }
+      showToast(`Config updated: ${key} = ${value}`, 'success');
+    } else {
+      showToast(data.error || 'Failed to save config.', 'error');
+    }
+  } catch { showToast('Network error.', 'error'); }
+}
+
+async function regenerateToken(songId) {
+  if (!confirm('Rotate the share token? The old public link will stop working.')) return;
+  try {
+    const res = await fetch(`/songs/admin/tokens/${songId}/regenerate/`, { method: 'POST' });
+    const data = await res.json();
+    if (res.ok) {
+      showToast('Token rotated. Old link is now broken.', 'success');
+      setTimeout(() => location.reload(), 1200);
+    } else {
+      showToast(data.error || 'Failed to rotate token.', 'error');
+    }
+  } catch { showToast('Network error.', 'error'); }
+}
+
+async function revokeToken(songId) {
+  if (!confirm('Revoke sharing? The song will become private and the public link will stop working.')) return;
+  try {
+    const res = await fetch(`/songs/admin/tokens/${songId}/revoke/`, { method: 'POST' });
+    const data = await res.json();
+    if (res.ok) {
+      showToast('Sharing revoked.', 'success');
+      const row = document.getElementById(`row-${songId}`);
+      if (row) row.remove();
+    } else {
+      showToast(data.error || 'Failed to revoke.', 'error');
+    }
+  } catch { showToast('Network error.', 'error'); }
+}
+</script>
+{% endblock %}

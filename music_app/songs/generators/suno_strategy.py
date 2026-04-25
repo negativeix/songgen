@@ -55,6 +55,8 @@ class SunoSongGeneratorStrategy(SongGeneratorStrategy):
             "instrumental": request.instrumental,
             "callBackUrl": callback_url,
         }
+        if request.duration:
+            payload["duration"] = request.duration
 
         try:
             resp = requests.post(SUNO_GENERATE_URL, json=payload,

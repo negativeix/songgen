@@ -18,7 +18,7 @@ class MockSongGeneratorStrategy(SongGeneratorStrategy):
             status="SUCCESS",
             audio_url=MOCK_AUDIO_URL,
             title=request.title or "Mock Song",
-            duration=MOCK_DURATION,
+            duration=request.duration or MOCK_DURATION,
         )
 
     def get_status(self, task_id: str) -> GenerationResult:

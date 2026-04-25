@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Song Unavailable{% endblock %}
+
+{% block content %}
+<div class="min-h-[80vh] flex items-center justify-center px-6">
+  <div class="text-center max-w-sm w-full">
+
+    <!-- Icon -->
+    <div class="w-24 h-24 mx-auto mb-6 rounded-full flex items-center justify-center"
+         style="background:var(--bg-card);border:1px solid var(--border);">
+      <span class="text-4xl">🔒</span>
+    </div>
+
+    <!-- Heading -->
+    <h1 class="text-2xl font-bold mb-2" style="color:var(--text);">
+      This song is private
+    </h1>
+    <p class="text-sm mb-8 leading-relaxed" style="color:var(--text-muted);">
+      The creator made this song private. The link you followed is no longer active.
+    </p>
+
+    <!-- Actions -->
+    <div class="flex flex-col gap-3 items-center">
+      <a href="/" class="btn-primary px-6 py-3 text-sm inline-block">
+        Go to SongGen
+      </a>
+      <button onclick="history.back()" class="btn-secondary px-6 py-3 text-sm">
+        Go Back
+      </button>
+    </div>
+
+    <!-- Footer note -->
+    <p class="text-xs mt-10" style="color:var(--text-dim);">
+      Want to create your own AI songs?
+      <a href="/" class="underline hover:text-white transition-colors" style="color:var(--text-muted);">Try SongGen free →</a>
+    </p>
+
+  </div>
+</div>
+
+<!-- Floating theme toggle for unauthenticated visitors -->
+{% if not request.user.is_authenticated %}
+<div class="fixed top-4 right-4 z-50">
+  <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle theme" aria-label="Toggle theme">🌙</button>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if not request.user.is_authenticated %}
+<script>
+(function() {
+  var t = localStorage.getItem('theme') || 'dark';
+  var btn = document.getElementById('theme-btn');
+  if (btn) btn.textContent = t === 'light' ? '☀️' : '🌙';
+})();
+</script>
+{% endif %}
+{% endblock %}

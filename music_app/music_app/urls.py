@@ -3,6 +3,7 @@ from django.urls import path, include
 from songs.page_views import (
     landing_view, library_view, generate_view,
     song_detail_view, public_share_page_view, how_to_view,
+    admin_dashboard_view,
 )
 
 urlpatterns = [
@@ -18,6 +19,7 @@ urlpatterns = [
     path('song/<uuid:song_id>/', song_detail_view, name='song_detail'),
     path('share/<uuid:token>/', public_share_page_view, name='public_share'),
     path('how-to/', how_to_view, name='how_to'),
+    path('admin-dashboard/', admin_dashboard_view, name='admin_dashboard'),
 
     # ── JSON API (Exercise 4) ────────────────────────────────────────────────
     path('songs/', include('songs.urls')),
