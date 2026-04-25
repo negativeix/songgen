@@ -149,6 +149,9 @@ Google OAuth is required for user login in both mock and Suno modes.
    ```
    http://127.0.0.1:8000/accounts/google/callback/
    ```
+   ```
+   http://127.0.0.1:8000/accounts/google/login/callback/
+   ```
 4. Copy the **Client ID** and **Client Secret** into `.env`.
 
 ### 4. Suno API key (only for real generation)
