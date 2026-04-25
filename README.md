@@ -125,7 +125,7 @@ DB_PORT=3306
 
 # ── Google OAuth (django-allauth) ─────────────────────────────────────────────
 # Create credentials at https://console.cloud.google.com/
-# Authorized redirect URI: http://127.0.0.1:8000/accounts/google/callback/
+# Authorized redirect URI: http://127.0.0.1:8000/accounts/google/callback/ 
 GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=your-google-client-secret
 
